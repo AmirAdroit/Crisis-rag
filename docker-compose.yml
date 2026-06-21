@@ -1,0 +1,45 @@
+services:
+  qdrant:
+    image: qdrant/qdrant:v1.11.3
+    ports:
+      - "6333:6333"
+    volumes:
+      - qdrant_storage:/qdrant/storage
+
+  # vLLM serves Qwen with an OpenAI-compatible API. Requires NVIDIA GPU + toolkit.
+  # If you have NO GPU, comment this service out and use the llama.cpp note in README.
+  llm:
+    image: vllm/vllm-openai:v0.6.2
+    command: >
+      --model Qwen/Qwen2.5-7B-Instruct
+      --max-model-len 8192
+      --gpu-memory-utilization 0.90
+      --quantization fp8
+    ports:
+      - "8000:8000"
+    volumes:
+      - hf_cache:/root/.cache/huggingface
+    environment:
+      - HUGGING_FACE_HUB_TOKEN=${HF_TOKEN:-}
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+
+  app:
+    build: .
+    ports:
+      - "8080:8080"
+    depends_on:
+      - qdrant
+      - llm
+    volumes:
+      - hf_cache:/code/.hf_cache
+    # config.yaml already points at service names qdrant/llm on the compose network.
+
+volumes:
+  qdrant_storage:
+  hf_cache:

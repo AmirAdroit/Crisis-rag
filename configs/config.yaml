@@ -1,0 +1,39 @@
+# ---- Crisis Survival RAG: central configuration ----
+
+llm:
+  # Served via vLLM (OpenAI-compatible). Swap to 3B if VRAM-constrained.
+  model_name: "qwen2.5:7b-instruct"
+  base_url: "http://localhost:11434/v1"   # docker service name; use localhost when running bare
+  api_key: "EMPTY"                  # vLLM ignores this but the client requires a value
+  temperature: 0.1                  # low = factual, deterministic for safety content
+  max_tokens: 1024
+
+embedding:
+  # Multilingual, strong on Persian, small enough for CPU. ~560MB.
+  model_name: "intfloat/multilingual-e5-base"
+  device: "cpu"                     # set "cuda" if you have spare VRAM
+  query_prefix: "query: "           # e5 models REQUIRE these prefixes
+  passage_prefix: "passage: "
+
+reranker:
+  enabled: true
+  model_name: "BAAI/bge-reranker-v2-m3"   # multilingual, handles Persian
+  top_n: 4                                  # docs passed to LLM after rerank
+
+vector_store:
+  provider: "qdrant"
+  url: "http://localhost:6333"
+  collection: "crisis_survival_fa"
+  distance: "Cosine"
+
+retrieval:
+  top_k: 12                # candidates fetched before reranking
+  score_threshold: 0.0     # e5 cosine; keep low, let reranker filter
+
+chunking:
+  chunk_size: 500          # characters; Persian text is dense, keep moderate
+  chunk_overlap: 80
+
+domain:
+  # Out-of-domain guard. If retrieval max score < this AND reranker low, refuse.
+  min_relevance_for_answer: 0.35
