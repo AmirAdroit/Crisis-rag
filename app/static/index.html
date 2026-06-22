@@ -1,0 +1,1224 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <title>همیار بحران</title>
+  <style>
+    /* ── Reset & base ── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #0d1117;
+      --surface:   #161b22;
+      --surface2:  #21262d;
+      --border:    #30363d;
+      --accent:    #e05c2a;
+      --accent2:   #f0853a;
+      --text:      #e6edf3;
+      --muted:     #7d8590;
+      --user-bg:   #1f2937;
+      --bot-bg:    #161b22;
+      --radius:    12px;
+      --font:      'Segoe UI', Tahoma, 'Vazirmatn', sans-serif;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font);
+      height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* ── Header ── */
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 20px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .logo-icon {
+      width: 36px;
+      height: 36px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+    }
+
+    .logo-text h1 {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text);
+      line-height: 1.2;
+    }
+
+    .logo-text p {
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    .status-pill {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 5px 12px;
+      font-size: 12px;
+      color: var(--muted);
+      cursor: default;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #3fb950;
+      animation: pulse 2s infinite;
+    }
+
+    .status-dot.offline { background: #da3633; animation: none; }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50%       { opacity: 0.4; }
+    }
+
+    /* ── Main layout ── */
+    main {
+      flex: 1;
+      display: flex;
+      overflow: hidden;
+    }
+
+    /* ── Sidebar (quick topics) ── */
+    .sidebar {
+      width: 220px;
+      background: var(--surface);
+      border-left: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+      flex-shrink: 0;
+    }
+
+    .sidebar-section {
+      padding: 14px 12px 6px;
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .topic-btn {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      width: 100%;
+      padding: 9px 14px;
+      background: none;
+      border: none;
+      color: var(--text);
+      font-size: 13px;
+      font-family: var(--font);
+      text-align: right;
+      cursor: pointer;
+      border-radius: 6px;
+      margin: 1px 6px;
+      width: calc(100% - 12px);
+      transition: background 0.15s;
+    }
+
+    .topic-btn:hover { background: var(--surface2); }
+    .topic-btn .icon { font-size: 15px; flex-shrink: 0; }
+
+    .divider { border: none; border-top: 1px solid var(--border); margin: 8px 12px; }
+
+    /* ── Chat area ── */
+    .chat-container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    #messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 24px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      scroll-behavior: smooth;
+    }
+
+    #messages::-webkit-scrollbar { width: 6px; }
+    #messages::-webkit-scrollbar-track { background: transparent; }
+    #messages::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+    /* ── Welcome screen ── */
+    .welcome {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      flex: 1;
+      gap: 16px;
+      text-align: center;
+      padding: 40px 20px;
+      color: var(--muted);
+    }
+
+    .welcome-icon { font-size: 52px; }
+    .welcome h2 { font-size: 20px; color: var(--text); font-weight: 600; }
+    .welcome p { font-size: 14px; max-width: 380px; line-height: 1.6; }
+
+    .quick-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: center;
+      margin-top: 8px;
+    }
+
+    .chip {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 7px 14px;
+      font-size: 13px;
+      color: var(--text);
+      cursor: pointer;
+      font-family: var(--font);
+      transition: border-color 0.15s, background 0.15s;
+    }
+
+    .chip:hover {
+      border-color: var(--accent);
+      background: var(--surface);
+    }
+
+    /* ── Message bubbles ── */
+    .msg {
+      display: flex;
+      gap: 10px;
+      animation: fadeUp 0.2s ease;
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(6px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .msg.user { flex-direction: row-reverse; }
+
+    .avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    .msg.user .avatar   { background: linear-gradient(135deg, #2d7fff, #5fa8ff); }
+    .msg.bot  .avatar   { background: linear-gradient(135deg, var(--accent), var(--accent2)); }
+
+    .bubble {
+      max-width: 72%;
+      padding: 12px 16px;
+      border-radius: var(--radius);
+      font-size: 14.5px;
+      line-height: 1.7;
+    }
+
+    .msg.user .bubble {
+      background: var(--user-bg);
+      border: 1px solid #2d3748;
+      border-bottom-left-radius: 4px;
+    }
+
+    .msg.bot .bubble {
+      background: var(--bot-bg);
+      border: 1px solid var(--border);
+      border-bottom-right-radius: 4px;
+    }
+
+    /* ── Sources chips ── */
+    .sources {
+      margin-top: 10px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .source-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 3px 10px;
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    .source-tag span { color: var(--accent2); }
+
+    /* ── Typing indicator ── */
+    .typing-indicator {
+      display: flex;
+      gap: 4px;
+      align-items: center;
+      padding: 4px 0;
+    }
+
+    .typing-indicator span {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--muted);
+      animation: bounce 1.2s infinite;
+    }
+
+    .typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
+    .typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
+
+    @keyframes bounce {
+      0%, 80%, 100% { transform: translateY(0); }
+      40%           { transform: translateY(-6px); }
+    }
+
+    /* ── Input bar ── */
+    .input-bar {
+      padding: 14px 18px;
+      background: var(--surface);
+      border-top: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+
+    .input-row {
+      display: flex;
+      gap: 10px;
+      align-items: flex-end;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 10px 12px;
+      transition: border-color 0.2s;
+    }
+
+    .input-row:focus-within { border-color: var(--accent); }
+
+    #question {
+      flex: 1;
+      background: none;
+      border: none;
+      outline: none;
+      color: var(--text);
+      font-size: 14.5px;
+      font-family: var(--font);
+      resize: none;
+      max-height: 140px;
+      line-height: 1.5;
+      direction: rtl;
+    }
+
+    #question::placeholder { color: var(--muted); }
+
+    #send-btn {
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      transition: opacity 0.15s, transform 0.1s;
+    }
+
+    #send-btn:hover  { opacity: 0.9; }
+    #send-btn:active { transform: scale(0.92); }
+    #send-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+
+    #send-btn svg { width: 16px; height: 16px; fill: white; }
+
+    .input-hint {
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 6px;
+      padding: 0 4px;
+    }
+
+    /* ── Error ── */
+    .error-bubble {
+      background: #2d1b1b;
+      border: 1px solid #5c2323;
+      border-radius: var(--radius);
+      padding: 10px 14px;
+      color: #f87171;
+      font-size: 13px;
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 640px) {
+      .sidebar { display: none; }
+      .bubble  { max-width: 88%; }
+    }
+
+    /* ════════ NEW: tool views (panic / SOS / kit) ════════ */
+    .view-tabs {
+      display: flex; gap: 6px; padding: 9px 16px; background: var(--surface);
+      border-bottom: 1px solid var(--border); overflow-x: auto; flex-shrink: 0;
+    }
+    .view-tabs::-webkit-scrollbar { height: 0; }
+    .vtab {
+      display: flex; align-items: center; gap: 7px; background: var(--surface2);
+      border: 1px solid var(--border); color: var(--muted); font-family: var(--font);
+      font-size: 13px; padding: 8px 15px; border-radius: 20px; cursor: pointer;
+      white-space: nowrap; transition: 0.15s;
+    }
+    .vtab:hover { border-color: var(--accent); color: var(--text); }
+    .vtab.active {
+      color: #fff; background: linear-gradient(135deg, var(--accent), var(--accent2));
+      border-color: transparent;
+    }
+    .vtab .em { font-size: 16px; }
+
+    .content { flex: 1; display: flex; min-width: 0; overflow: hidden; }
+    .view { flex: 1; min-width: 0; height: 100%; display: none; }
+    .view.active { display: flex; flex-direction: column; }
+    .sidebar.hidden { display: none; }
+    .view-scroll { flex: 1; overflow-y: auto; }
+    .view-scroll::-webkit-scrollbar { width: 6px; }
+    .view-scroll::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+    .view-pad { padding: 22px 24px 36px; max-width: 940px; margin: 0 auto; width: 100%; }
+    .view-h { font-size: 21px; font-weight: 700; margin-bottom: 14px; }
+    .view-h small { display: block; font-size: 13px; color: var(--muted); font-weight: 400; margin-top: 5px; line-height: 1.6; }
+
+    /* new-chat / reset */
+    .chat-topbar { display: flex; justify-content: flex-start; padding: 10px 20px 0; flex-shrink: 0; }
+    .new-chat-btn { display: inline-flex; align-items: center; gap: 6px; background: var(--surface2);
+      border: 1px solid var(--border); color: var(--muted); font-family: var(--font); font-size: 12.5px;
+      padding: 7px 13px; border-radius: 20px; cursor: pointer; transition: 0.15s; }
+    .new-chat-btn:hover { border-color: var(--accent); color: var(--text); }
+
+    /* panic grid */
+    .panic-note { background: #1c1411; border: 1px solid #3a2317; border-radius: var(--radius);
+      padding: 12px 15px; font-size: 13px; color: #f0b896; line-height: 1.6; margin-bottom: 18px; }
+    .panic-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 13px; }
+    .em-tile { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 18px 12px; display: flex; flex-direction: column; align-items: center; gap: 8px;
+      cursor: pointer; text-align: center; color: var(--text); font-family: var(--font);
+      transition: transform 0.1s, border-color 0.15s; }
+    .em-tile:hover { border-color: var(--accent); }
+    .em-tile:active { transform: scale(0.96); }
+    .em-tile .em-ic { font-size: 36px; }
+    .em-tile .em-t { font-size: 15px; font-weight: 700; }
+    .em-tile .em-s { font-size: 11.5px; color: var(--muted); }
+    .em-tile.crit { background: #1f0f0f; border-color: #5c2323; }
+    .em-tile.crit .em-t { color: #f85149; }
+
+    /* guided flow overlay */
+    .flowov { position: fixed; inset: 0; background: var(--bg); z-index: 100; display: none; flex-direction: column; }
+    .flowov.show { display: flex; }
+    .flowov-in { max-width: 620px; margin: 0 auto; width: 100%; flex: 1; display: flex; flex-direction: column; }
+    .flow-top { display: flex; align-items: center; gap: 11px; padding: 16px 20px;
+      background: var(--surface); border-bottom: 1px solid var(--border); }
+    .flow-top .fic { font-size: 26px; }
+    .flow-top .ft { font-size: 18px; font-weight: 700; flex: 1; }
+    .flow-x { background: var(--surface2); border: 1px solid var(--border); color: var(--text);
+      width: 36px; height: 36px; border-radius: 9px; font-size: 18px; cursor: pointer; }
+    .dots { display: flex; gap: 6px; padding: 16px 20px 0; }
+    .dots i { flex: 1; height: 4px; border-radius: 2px; background: var(--surface2); }
+    .dots i.done { background: var(--accent); }
+    .dots i.cur { background: var(--accent2); }
+    .flow-body { flex: 1; display: flex; flex-direction: column; justify-content: center; padding: 24px; text-align: center; }
+    .step-num { font-size: 14px; color: var(--accent2); font-weight: 700; margin-bottom: 16px; }
+    .step-text { font-size: 30px; line-height: 1.6; font-weight: 700; max-width: 560px; margin: 0 auto; }
+    .step-hint { font-size: 15px; color: var(--muted); margin: 18px auto 0; line-height: 1.7; max-width: 520px; }
+    .flow-ctrl { display: flex; gap: 12px; padding: 16px 20px; }
+    .flow-ctrl button { flex: 1; padding: 16px; border-radius: 12px; font-family: var(--font);
+      font-size: 16px; font-weight: 700; cursor: pointer; border: 1px solid var(--border); }
+    .btn-prev { background: var(--surface2); color: var(--text); }
+    .btn-next { background: linear-gradient(135deg, var(--accent), var(--accent2)); color: #fff; border: none; }
+    .call-bar { display: flex; align-items: center; justify-content: center; gap: 9px; background: #da3633;
+      color: #fff; padding: 15px; font-size: 16px; font-weight: 700; cursor: pointer; border: none;
+      width: 100%; font-family: var(--font); }
+
+    /* SOS tools */
+    .tools { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px; }
+    .tool { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; }
+    .tool-head { display: flex; align-items: center; gap: 13px; }
+    .tool .t-ic { font-size: 28px; width: 50px; height: 50px; border-radius: 12px; background: var(--surface2);
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .tool .t-name { font-size: 16px; font-weight: 700; }
+    .tool .t-desc { font-size: 12px; color: var(--muted); margin-top: 3px; line-height: 1.5; }
+    .t-action { margin-top: 14px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .toggle { width: 54px; height: 31px; border-radius: 20px; background: var(--surface2);
+      border: 1px solid var(--border); position: relative; cursor: pointer; flex-shrink: 0; transition: 0.2s; }
+    .toggle::after { content: ""; position: absolute; width: 23px; height: 23px; border-radius: 50%;
+      background: var(--muted); top: 3px; right: 3px; transition: 0.2s; }
+    .toggle.on { background: #3a1c10; border-color: var(--accent); }
+    .toggle.on::after { background: var(--accent2); right: 26px; }
+    .mini-btn { background: var(--surface2); border: 1px solid var(--border); color: var(--text);
+      font-family: var(--font); font-size: 13px; padding: 9px 15px; border-radius: 9px; cursor: pointer; }
+    .mini-btn:hover { border-color: var(--accent); }
+    .coords { font-size: 13px; color: var(--accent2); margin-top: 10px; direction: ltr; text-align: left; font-family: monospace; }
+    .strobe { position: fixed; inset: 0; z-index: 120; display: none; }
+    .strobe.show { display: block; }
+    .strobe .label { position: absolute; top: 50%; left: 0; right: 0; text-align: center;
+      transform: translateY(-50%); font-size: 46px; color: #000; font-weight: 700;
+      mix-blend-mode: difference; letter-spacing: 10px; }
+    .strobe .stop { position: absolute; top: 20px; right: 20px; background: rgba(0,0,0,0.6); color: #fff;
+      border: 1px solid #ffffff66; border-radius: 10px; padding: 11px 18px; font-size: 15px;
+      font-weight: 700; cursor: pointer; font-family: var(--font); }
+
+    /* emergency kit / go-bag */
+    .kit-graphic { width: 100%; height: auto; display: block; }
+    .kit-actions { display: flex; gap: 10px; margin: 14px 0 22px; flex-wrap: wrap; }
+    .kit-prog { display: flex; align-items: center; gap: 14px; background: var(--surface);
+      border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 16px; margin-bottom: 16px; }
+    .kit-prog .pbar { flex: 1; height: 9px; background: var(--surface2); border-radius: 6px; overflow: hidden; }
+    .kit-prog .pbar i { display: block; height: 100%; width: 0; background: #3fb950; transition: width 0.3s, background 0.3s; }
+    .kit-prog b { font-size: 18px; min-width: 48px; text-align: left; }
+    .kit-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 8px 16px; }
+    .kit-row { display: flex; align-items: center; gap: 11px; padding: 11px 6px;
+      border-bottom: 1px solid var(--border); cursor: pointer; }
+    .kit-row .cbox { width: 24px; height: 24px; border-radius: 7px; border: 2px solid var(--border);
+      flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 15px;
+      color: transparent; transition: 0.15s; }
+    .kit-row.on .cbox { background: #3fb950; border-color: #3fb950; color: #fff; }
+    .kit-row.on .k-label { color: var(--muted); text-decoration: line-through; }
+    .kit-row .k-ic { font-size: 20px; width: 26px; text-align: center; }
+    .kit-row .k-label { font-size: 14px; flex: 1; }
+    .kit-row .k-qty { font-size: 11.5px; color: var(--muted); }
+
+    @media (max-width: 640px) {
+      .step-text { font-size: 24px; }
+      .view-pad { padding: 18px 16px 30px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ═══════════ HEADER ═══════════ -->
+<header>
+  <div class="logo">
+    <div class="logo-icon">🛡️</div>
+    <div class="logo-text">
+      <h1>همیار بحران</h1>
+      <p>دستیار هوشمند بقا در شرایط اضطراری</p>
+    </div>
+  </div>
+  <div class="status-pill" id="status-pill">
+    <div class="status-dot offline" id="status-dot"></div>
+    <span id="status-text">در حال اتصال…</span>
+  </div>
+</header>
+
+<!-- ═══════════ TOOL TABS ═══════════ -->
+<div class="view-tabs" id="view-tabs">
+  <button class="vtab active" data-view="chat"  onclick="showView('chat')"><span class="em">💬</span> گفتگو</button>
+  <button class="vtab"        data-view="panic" onclick="showView('panic')"><span class="em">🆘</span> حالت اضطرار</button>
+  <button class="vtab"        data-view="sos"   onclick="showView('sos')"><span class="em">🔦</span> جعبه‌ابزار نجات</button>
+  <button class="vtab"        data-view="kit"   onclick="showView('kit')"><span class="em">🎒</span> کیت اضطراری</button>
+</div>
+
+<!-- ═══════════ MAIN ═══════════ -->
+<main>
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-section">بلایای طبیعی</div>
+    <button class="topic-btn" onclick="askTopic('در زلزله چه کار کنم؟')"><span class="icon">🌍</span> زلزله</button>
+    <button class="topic-btn" onclick="askTopic('در سیل چطور در امان باشم؟')"><span class="icon">🌊</span> سیل</button>
+    <button class="topic-btn" onclick="askTopic('در سونامی چه اقداماتی انجام دهم؟')"><span class="icon">🌀</span> سونامی</button>
+    <button class="topic-btn" onclick="askTopic('در آتشفشان چطور محافظت کنم؟')"><span class="icon">🌋</span> آتشفشان</button>
+    <button class="topic-btn" onclick="askTopic('در گردباد چه کنم؟')"><span class="icon">🌪️</span> گردباد</button>
+
+    <hr class="divider"/>
+    <div class="sidebar-section">بحران‌های انسانی</div>
+    <button class="topic-btn" onclick="askTopic('در جنگ و درگیری چطور در امان باشم؟')"><span class="icon">⚠️</span> جنگ</button>
+    <button class="topic-btn" onclick="askTopic('در حادثه هسته‌ای چه کنم؟')"><span class="icon">☢️</span> هسته‌ای</button>
+    <button class="topic-btn" onclick="askTopic('در حادثه شیمیایی چه اقداماتی انجام دهم؟')"><span class="icon">☣️</span> شیمیایی</button>
+    <button class="topic-btn" onclick="askTopic('در آتش‌سوزی چطور فرار کنم؟')"><span class="icon">🔥</span> آتش‌سوزی</button>
+
+    <hr class="divider"/>
+    <div class="sidebar-section">بقا و آمادگی</div>
+    <button class="topic-btn" onclick="askTopic('کیت اضطراری چه چیزهایی باید داشته باشد؟')"><span class="icon">🎒</span> کیت اضطراری</button>
+    <button class="topic-btn" onclick="askTopic('در قطع برق طولانی چطور زندگی کنم؟')"><span class="icon">💡</span> قطع برق</button>
+    <button class="topic-btn" onclick="askTopic('در کمبود آب چطور آب تصفیه کنم؟')"><span class="icon">💧</span> کمبود آب</button>
+    <button class="topic-btn" onclick="askTopic('چطور کمک اولیه انجام دهم؟')"><span class="icon">🩹</span> کمک اولیه</button>
+    <button class="topic-btn" onclick="askTopic('در همه‌گیری چطور محافظت کنم؟')"><span class="icon">🦠</span> همه‌گیری</button>
+    <button class="topic-btn" onclick="askTopic('چطور در طبیعت مسیر پیدا کنم؟')"><span class="icon">🧭</span> ناوبری</button>
+  </aside>
+
+  <div class="content">
+
+  <!-- ░░ Chat view ░░ -->
+  <div class="view active" id="view-chat">
+  <!-- Chat -->
+  <div class="chat-container">
+    <div class="chat-topbar">
+      <button class="new-chat-btn" onclick="resetChat()" title="پاک کردن گفتگو و شروع از نو">↻ گفتگوی جدید</button>
+    </div>
+    <div id="messages">
+      <!-- Welcome shown initially -->
+      <div class="welcome" id="welcome">
+        <div class="welcome-icon">🛡️</div>
+        <h2>سلام، من همیار بحران هستم</h2>
+        <p>سوال خود را درباره آمادگی برای بحران، بقا در شرایط اضطراری یا کمک‌های اولیه بپرسید.</p>
+        <div class="quick-chips">
+          <button class="chip" onclick="askTopic('در زلزله چه کار کنم؟')">🌍 زلزله</button>
+          <button class="chip" onclick="askTopic('کیت اضطراری چه داشته باشد؟')">🎒 کیت اضطراری</button>
+          <button class="chip" onclick="askTopic('چطور آب آلوده را تصفیه کنم؟')">💧 تصفیه آب</button>
+          <button class="chip" onclick="askTopic('CPR چطور انجام می‌شود؟')">🩺 CPR</button>
+          <button class="chip" onclick="askTopic('در سیل چه اقداماتی انجام دهم؟')">🌊 سیل</button>
+          <button class="chip" onclick="askTopic('در بمباران کجا پناه بگیرم؟')">⚠️ بمباران</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="input-bar">
+      <div class="input-row">
+        <textarea
+          id="question"
+          placeholder="سوال خود را اینجا بنویسید…"
+          rows="1"
+          autocomplete="off"
+          spellcheck="false"
+        ></textarea>
+        <button id="send-btn" onclick="sendMessage()" title="ارسال (Enter)">
+          <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+          </svg>
+        </button>
+      </div>
+      <div class="input-hint">Enter برای ارسال &nbsp;·&nbsp; Shift+Enter برای خط جدید</div>
+    </div>
+  </div>
+  </div><!-- /view-chat -->
+
+  <!-- ░░ Panic view ░░ -->
+  <div class="view" id="view-panic">
+    <div class="view-scroll"><div class="view-pad">
+      <div class="view-h">حالت اضطرار — الان چه اتفاقی افتاده؟
+        <small>روی وضعیت بزن تا گام‌به‌گام راهنمایی شوی؛ بدون نیاز به تایپ.</small></div>
+      <div class="panic-note">⚡ در لحظهٔ بحران فرصت تایپ‌کردن نیست. یک دکمه بزن و فقط همان گام را انجام بده.</div>
+      <div class="panic-grid" id="panic-grid"></div>
+    </div></div>
+  </div>
+
+  <!-- ░░ SOS view ░░ -->
+  <div class="view" id="view-sos">
+    <div class="view-scroll"><div class="view-pad">
+      <div class="view-h">جعبه‌ابزار نجات
+        <small>این ابزارها واقعاً کار می‌کنند و به اینترنت نیاز ندارند.</small></div>
+      <div class="tools">
+
+        <div class="tool">
+          <div class="tool-head">
+            <div class="t-ic">🔦</div>
+            <div><div class="t-name">چراغ‌قوه + علامت SOS مورس</div>
+              <div class="t-desc">صفحه با کد بین‌المللی نجات (···———···) چشمک می‌زند تا دیده شوی.</div></div>
+          </div>
+          <div class="t-action"><div class="toggle" id="tg-strobe" onclick="toggleStrobe()"></div>
+            <span class="t-desc">روشن / خاموش</span></div>
+        </div>
+
+        <div class="tool">
+          <div class="tool-head">
+            <div class="t-ic">📢</div>
+            <div><div class="t-name">آژیر اضطراری</div>
+              <div class="t-desc">صدای بلند و نوسانی برای جلب توجه و درخواست کمک.</div></div>
+          </div>
+          <div class="t-action"><div class="toggle" id="tg-siren" onclick="toggleSiren()"></div>
+            <span class="t-desc">روشن / خاموش</span></div>
+        </div>
+
+        <div class="tool">
+          <div class="tool-head">
+            <div class="t-ic">🔊</div>
+            <div><div class="t-name">سوت دیجیتال</div>
+              <div class="t-desc">سه بوق کوتاهِ بلند — علامت استاندارد درخواست کمک.</div></div>
+          </div>
+          <div class="t-action"><button class="mini-btn" onclick="whistle()">پخش سوت</button></div>
+        </div>
+
+        <div class="tool">
+          <div class="tool-head">
+            <div class="t-ic">📍</div>
+            <div><div class="t-name">فانوس موقعیت</div>
+              <div class="t-desc">موقعیت دقیقت را برای تیم نجات بیاب و بفرست.</div></div>
+          </div>
+          <div class="t-action"><button class="mini-btn" onclick="locate()">یافتن موقعیت</button>
+            <button class="mini-btn" id="share-loc" style="display:none" onclick="shareLoc()">📤 نقشه / اشتراک</button></div>
+          <div class="coords" id="coords">— هنوز موقعیتی ثبت نشده —</div>
+        </div>
+
+      </div>
+    </div></div>
+  </div>
+
+  <!-- ░░ Emergency kit view ░░ -->
+  <div class="view" id="view-kit">
+    <div class="view-scroll"><div class="view-pad">
+      <div class="view-h">کیت نجات اضطراری (کولهٔ ۷۲ ساعته)
+        <small>اقلامی که باید همیشه آمادهٔ برداشتن باشند تا ۳ روز بدون کمک دوام بیاوری.</small></div>
+      <div id="kit-graphic-wrap"></div>
+      <div class="kit-actions">
+        <button class="mini-btn" onclick="downloadInfographic()">⬇️ دانلود اینفوگرافیک</button>
+        <button class="mini-btn" onclick="window.print()">🖨️ چاپ چک‌لیست</button>
+      </div>
+      <div class="kit-prog">
+        <span>آمادگی کیت:</span>
+        <div class="pbar"><i id="kit-bar"></i></div>
+        <b id="kit-pct">۰٪</b>
+      </div>
+      <div class="kit-list" id="kit-list"></div>
+    </div></div>
+  </div>
+
+  </div><!-- /content -->
+
+</main>
+
+<!-- ═══════════ GUIDED FLOW OVERLAY ═══════════ -->
+<div class="flowov" id="flowov">
+  <div class="flowov-in">
+    <div class="flow-top">
+      <span class="fic" id="flow-ic">🌍</span>
+      <span class="ft" id="flow-title">زلزله</span>
+      <button class="flow-x" onclick="closeFlow()" aria-label="بستن">✕</button>
+    </div>
+    <div class="dots" id="dots"></div>
+    <div class="flow-body">
+      <div class="step-num" id="step-num"></div>
+      <div class="step-text" id="step-text"></div>
+      <div class="step-hint" id="step-hint"></div>
+    </div>
+    <div class="flow-ctrl">
+      <button class="btn-prev" onclick="flowStep(-1)">گام قبل</button>
+      <button class="btn-next" id="next-btn" onclick="flowStep(1)">گام بعد ›</button>
+    </div>
+  </div>
+  <button class="call-bar" onclick="emergencyCall('115')">📞 تماس فوری با اورژانس ۱۱۵</button>
+</div>
+
+<!-- ═══════════ STROBE OVERLAY ═══════════ -->
+<div class="strobe" id="strobe">
+  <div class="label">SOS</div>
+  <button class="stop" onclick="toggleStrobe()">توقف ✕</button>
+</div>
+
+<script>
+  const API = '';  // same origin — FastAPI serves this file
+
+  const messagesEl  = document.getElementById('messages');
+  const questionEl  = document.getElementById('question');
+  const sendBtn     = document.getElementById('send-btn');
+  const welcomeEl   = document.getElementById('welcome');
+  const statusDot   = document.getElementById('status-dot');
+  const statusText  = document.getElementById('status-text');
+
+  let busy = false;
+  let chatHistory = [];  // ephemeral [{role, content}] for multi-turn context (not persisted)
+
+  // ── Auto-resize textarea ──
+  questionEl.addEventListener('input', () => {
+    questionEl.style.height = 'auto';
+    questionEl.style.height = Math.min(questionEl.scrollHeight, 140) + 'px';
+  });
+
+  // ── Enter to send ──
+  questionEl.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      if (!busy) sendMessage();
+    }
+  });
+
+  // ── Health check ──
+  async function checkHealth() {
+    try {
+      const r = await fetch(API + '/health');
+      if (r.ok) {
+        statusDot.classList.remove('offline');
+        statusText.textContent = 'آنلاین';
+      } else throw new Error();
+    } catch {
+      statusDot.classList.add('offline');
+      statusText.textContent = 'سرور در دسترس نیست';
+    }
+  }
+
+  checkHealth();
+  setInterval(checkHealth, 30_000);
+
+  // ── Quick topic ──
+  function askTopic(q) {
+    if (typeof showView === 'function') showView('chat');
+    questionEl.value = q;
+    questionEl.style.height = 'auto';
+    sendMessage();
+  }
+
+  // ── New chat / reset (clears messages + multi-turn context) ──
+  function resetChat() {
+    chatHistory = [];
+    Array.from(messagesEl.children).forEach(n => { if (n.id !== 'welcome') n.remove(); });
+    if (welcomeEl) welcomeEl.style.display = 'flex';
+    questionEl.value = '';
+    questionEl.style.height = 'auto';
+    busy = false;
+    sendBtn.disabled = false;
+    questionEl.focus();
+  }
+
+  // ── Send message ──
+  async function sendMessage() {
+    const q = questionEl.value.trim();
+    if (!q || busy) return;
+
+    busy = true;
+    sendBtn.disabled = true;
+
+    // Hide welcome
+    if (welcomeEl) welcomeEl.style.display = 'none';
+
+    // User bubble
+    appendBubble('user', q);
+    questionEl.value = '';
+    questionEl.style.height = 'auto';
+
+    // Typing indicator
+    const typingId = appendTyping();
+
+    try {
+      const res = await fetch(API + '/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ question: q, history: chatHistory.slice(-6) }),
+      });
+
+      removeTyping(typingId);
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        appendError('خطای سرور: ' + (err.detail || res.status));
+      } else {
+        const data = await res.json();
+        appendBotBubble(data.answer, data.sources || []);
+        chatHistory.push({ role: 'user', content: q });
+        chatHistory.push({ role: 'assistant', content: data.answer });
+      }
+    } catch (err) {
+      removeTyping(typingId);
+      appendError('ارتباط با سرور برقرار نشد. مطمئن شوید سرور در حال اجراست.');
+    }
+
+    busy = false;
+    sendBtn.disabled = false;
+    questionEl.focus();
+  }
+
+  // ── DOM helpers ──
+  function appendBubble(role, text) {
+    const div = document.createElement('div');
+    div.className = 'msg ' + role;
+    div.innerHTML = `
+      <div class="avatar">${role === 'user' ? '👤' : '🛡️'}</div>
+      <div class="bubble">${escapeHtml(text).replace(/\n/g, '<br>')}</div>
+    `;
+    messagesEl.appendChild(div);
+    scrollBottom();
+    return div;
+  }
+
+  function appendBotBubble(answer, sources) {
+    const div = document.createElement('div');
+    div.className = 'msg bot';
+
+    const sourcesHtml = sources.length
+      ? `<div class="sources">
+           ${sources.map(s => `
+             <span class="source-tag">
+               <span>📄</span> ${escapeHtml(s.category || s.source || 'منبع')}
+             </span>`).join('')}
+         </div>`
+      : '';
+
+    div.innerHTML = `
+      <div class="avatar">🛡️</div>
+      <div class="bubble">
+        ${escapeHtml(answer).replace(/\n/g, '<br>')}
+        ${sourcesHtml}
+      </div>
+    `;
+    messagesEl.appendChild(div);
+    scrollBottom();
+  }
+
+  function appendTyping() {
+    const id = 'typing-' + Date.now();
+    const div = document.createElement('div');
+    div.className = 'msg bot';
+    div.id = id;
+    div.innerHTML = `
+      <div class="avatar">🛡️</div>
+      <div class="bubble">
+        <div class="typing-indicator">
+          <span></span><span></span><span></span>
+        </div>
+      </div>
+    `;
+    messagesEl.appendChild(div);
+    scrollBottom();
+    return id;
+  }
+
+  function removeTyping(id) {
+    const el = document.getElementById(id);
+    if (el) el.remove();
+  }
+
+  function appendError(msg) {
+    const div = document.createElement('div');
+    div.className = 'msg bot';
+    div.innerHTML = `
+      <div class="avatar">🛡️</div>
+      <div class="error-bubble">⚠️ ${escapeHtml(msg)}</div>
+    `;
+    messagesEl.appendChild(div);
+    scrollBottom();
+  }
+
+  function scrollBottom() {
+    messagesEl.scrollTop = messagesEl.scrollHeight;
+  }
+
+  function escapeHtml(s) {
+    return s
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+</script>
+
+<!-- ═══════════ TOOLS: panic / SOS / kit ═══════════ -->
+<script>
+  function toFa(n) { return String(n).replace(/[0-9]/g, d => '۰۱۲۳۴۵۶۷۸۹'[d]); }
+  function emergencyCall(num) {
+    if (confirm('با اورژانس تماس گرفته شود؟')) location.href = 'tel:' + num;
+  }
+
+  /* ── view switching ── */
+  function showView(name) {
+    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+    const v = document.getElementById('view-' + name);
+    if (v) v.classList.add('active');
+    document.querySelectorAll('.vtab').forEach(t => t.classList.toggle('active', t.dataset.view === name));
+    const sb = document.querySelector('.sidebar');
+    if (sb) sb.classList.toggle('hidden', name !== 'chat');
+    const sc = v && v.querySelector('.view-scroll');
+    if (sc) sc.scrollTop = 0;
+  }
+
+  /* ── panic-mode guided flows ── */
+  const FLOWS = {
+    earthquake: { ic: '🌍', title: 'زلزله — همین حالا', crit: true, steps: [
+      { t: 'سرجایت بمان. بیرون ندو.', h: 'بیشترِ آسیب‌ها هنگام فرار رخ می‌دهد.' },
+      { t: 'بنشین و زیر میز محکم پناه بگیر', h: 'Drop — روی زمین بنشین.' },
+      { t: 'سر و گردنت را با دست بپوشان', h: 'Cover — از اشیای در حال سقوط محافظت کن.' },
+      { t: 'به پایهٔ میز بچسب تا لرزش تمام شود', h: 'Hold On — اگر میز حرکت کرد همراهش برو.' },
+      { t: 'دور از پنجره، شیشه و کمد بلند بمان', h: 'این اجسام واژگون یا خرد می‌شوند.' },
+      { t: 'پس از توقف لرزش، با احتیاط به فضای باز برو', h: 'از آسانسور استفاده نکن؛ مراقب پس‌لرزه باش.' }
+    ]},
+    bleeding: { ic: '🩸', title: 'خونریزی شدید', crit: true, steps: [
+      { t: 'اگر دستکش داری بپوش', h: 'برای ایمنی خودت.' },
+      { t: 'با پارچهٔ تمیز، مستقیم و محکم روی زخم فشار بده', h: 'فشار ثابت مهم‌ترین کار است.' },
+      { t: 'فشار را قطع نکن؛ پارچه را برندار', h: 'اگر خیس شد، لایهٔ تازه رویش بگذار.' },
+      { t: 'در صورت امکان، عضو را بالاتر از قلب نگه دار', h: 'به کاهش خونریزی کمک می‌کند.' },
+      { t: 'اگر بند نمی‌آید، تورنیکت بالای زخم ببند', h: 'زمان بستن را یادداشت کن.' },
+      { t: 'با ۱۱۵ تماس بگیر و فرد را گرم نگه دار', h: 'مراقب علائم شوک باش.' }
+    ]},
+    fire: { ic: '🔥', title: 'آتش‌سوزی — فرار', crit: true, steps: [
+      { t: 'خم شو و زیر دود حرکت کن', h: 'هوای سالم‌تر نزدیک زمین است.' },
+      { t: 'قبل از باز کردن در، پشت آن را با پشت دست لمس کن', h: 'اگر داغ بود باز نکن؛ راه دیگری پیدا کن.' },
+      { t: 'از نزدیک‌ترین خروجِ امن بیرون برو', h: 'هرگز از آسانسور استفاده نکن.' },
+      { t: 'اگر لباست آتش گرفت: بایست، بخواب، بغلت بزن', h: 'Stop, Drop, Roll.' },
+      { t: 'بیرون برو و دیگر برنگرد', h: 'با آتش‌نشانی ۱۲۵ تماس بگیر.' },
+      { t: 'اگر گیر افتادی، درز در را ببند و از پنجره علامت بده', h: 'با پارچه یا چراغ‌قوه خود را نشان بده.' }
+    ]},
+    cpr: { ic: '❤️', title: 'ایست قلبی — CPR', crit: true, steps: [
+      { t: 'هوشیاری را بررسی کن: شانه را تکان بده و صدا بزن', h: 'مطمئن شو صحنه امن است.' },
+      { t: 'اگر پاسخ نمی‌دهد و نفس نمی‌کشد، با ۱۱۵ تماس بگیر', h: 'بلندگو را روشن کن.' },
+      { t: 'کف دست را وسط قفسهٔ سینه بگذار، دست دیگر رویش', h: 'انگشتان درهم قفل.' },
+      { t: '۳۰ بار محکم و سریع فشار بده', h: 'عمق ۵ تا ۶ سانتی‌متر، سرعت ۱۰۰ تا ۱۲۰ در دقیقه.' },
+      { t: 'در صورت آموزش‌دیده بودن، ۲ تنفس نجات بده', h: 'سپس چرخهٔ ۳۰:۲ را ادامه بده.' },
+      { t: 'تا رسیدن اورژانس یا آمدن دستگاه شوک ادامه بده', h: 'دست نگه ندار.' }
+    ]},
+    flood: { ic: '🌊', title: 'سیل', steps: [
+      { t: 'فوراً به بلندی برو', h: 'حتی ۱۵ سانتی‌متر آبِ جاری می‌تواند تو را بیندازد.' },
+      { t: 'وارد آب جاری یا سیلابی نشو', h: 'عمق و جریان فریبنده است.' },
+      { t: 'با خودرو وارد مسیر آب‌گرفته نشو', h: '۳۰ سانتی‌متر آب خودرو را می‌برد.' },
+      { t: 'اگر زمان داری برق و گاز را قطع کن', h: 'خطر برق‌گرفتگی و نشت.' },
+      { t: 'هشدارهای رسمی را دنبال کن و آمادهٔ تخلیه باش', h: 'کیت اضطراری را بردار.' }
+    ]},
+    shelter: { ic: '⚠️', title: 'بمباران / پناه‌گیری', steps: [
+      { t: 'به پایین‌ترین طبقه یا زیرزمین برو', h: 'دور از پنجره‌ها.' },
+      { t: 'زیر سازهٔ محکم (راه‌پله، دیوار باربر) پناه بگیر', h: 'دهان را کمی باز نگه دار تا گوش‌ها آسیب نبینند.' },
+      { t: 'از پنجره، شیشه و بالکن دور بمان', h: 'موج انفجار شیشه را پرتاب می‌کند.' },
+      { t: 'بعد از انفجار صبر کن؛ ممکن است حملهٔ دوم باشد', h: 'تا اعلام پایان خطر بیرون نرو.' },
+      { t: 'کیت اضطراری و مدارک را نزدیک خود نگه دار', h: 'آمادهٔ جابه‌جایی سریع باش.' }
+    ]}
+  };
+  const PTILES = [
+    ['earthquake', '🌍', 'زلزله', 'حین لرزش'],
+    ['bleeding', '🩸', 'خونریزی شدید', 'کنترل خونریزی'],
+    ['fire', '🔥', 'آتش‌سوزی', 'فرار امن'],
+    ['cpr', '❤️', 'ایست قلبی', 'CPR'],
+    ['flood', '🌊', 'سیل', 'به بلندی برو'],
+    ['shelter', '⚠️', 'بمباران', 'پناه‌گیری']
+  ];
+  (function () {
+    const g = document.getElementById('panic-grid');
+    if (!g) return;
+    PTILES.forEach(([k, ic, t, s]) => {
+      const b = document.createElement('button');
+      b.className = 'em-tile' + (FLOWS[k].crit ? ' crit' : '');
+      b.innerHTML = `<span class="em-ic">${ic}</span><span class="em-t">${t}</span><span class="em-s">${s}</span>`;
+      b.onclick = () => openFlow(k);
+      g.appendChild(b);
+    });
+  })();
+  let curFlow = null, curStep = 0;
+  function openFlow(k) {
+    curFlow = FLOWS[k]; curStep = 0;
+    document.getElementById('flow-ic').textContent = curFlow.ic;
+    document.getElementById('flow-title').textContent = curFlow.title;
+    const dots = document.getElementById('dots'); dots.innerHTML = '';
+    curFlow.steps.forEach(() => dots.appendChild(document.createElement('i')));
+    renderStep();
+    document.getElementById('flowov').classList.add('show');
+  }
+  function renderStep() {
+    const s = curFlow.steps[curStep];
+    document.getElementById('step-num').textContent = 'گام ' + toFa(curStep + 1) + ' از ' + toFa(curFlow.steps.length);
+    document.getElementById('step-text').textContent = s.t;
+    document.getElementById('step-hint').textContent = s.h || '';
+    [...document.getElementById('dots').children].forEach((d, i) => {
+      d.className = i < curStep ? 'done' : i === curStep ? 'cur' : '';
+    });
+    const last = curStep === curFlow.steps.length - 1;
+    document.getElementById('next-btn').textContent = last ? 'پایان ✓' : 'گام بعد ›';
+  }
+  function flowStep(d) {
+    const last = curStep === curFlow.steps.length - 1;
+    if (d > 0 && last) { closeFlow(); return; }
+    curStep = Math.max(0, Math.min(curFlow.steps.length - 1, curStep + d));
+    renderStep();
+  }
+  function closeFlow() { document.getElementById('flowov').classList.remove('show'); }
+
+  /* ── SOS: strobe (Morse SOS) ── */
+  let strobeTimers = [], strobeOn = false, torchTrack = null;
+  const MORSE = [200,200,200,200,200,600, 600,200,600,200,600,600, 200,200,200,200,200,1400];
+  function toggleStrobe() {
+    strobeOn = !strobeOn;
+    document.getElementById('tg-strobe').classList.toggle('on', strobeOn);
+    const ov = document.getElementById('strobe');
+    if (strobeOn) { ov.classList.add('show'); tryTorch(true); runMorse(); }
+    else {
+      ov.classList.remove('show'); ov.style.background = '';
+      strobeTimers.forEach(clearTimeout); strobeTimers = []; tryTorch(false);
+    }
+  }
+  function runMorse() {
+    const ov = document.getElementById('strobe');
+    (function loop() {
+      strobeTimers = []; let t = 0;
+      MORSE.forEach((dur, idx) => {
+        const on = idx % 2 === 0;
+        strobeTimers.push(setTimeout(() => { ov.style.background = on ? '#ffffff' : '#000000'; tryTorch(on); }, t));
+        t += dur;
+      });
+      strobeTimers.push(setTimeout(() => { if (strobeOn) loop(); }, t));
+    })();
+  }
+  async function tryTorch(on) {
+    try {
+      if (on && !torchTrack) {
+        const s = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+        torchTrack = s.getVideoTracks()[0];
+      }
+      if (torchTrack && torchTrack.getCapabilities && torchTrack.getCapabilities().torch) {
+        await torchTrack.applyConstraints({ advanced: [{ torch: on }] });
+      }
+      if (!strobeOn && torchTrack) { torchTrack.stop(); torchTrack = null; }
+    } catch (e) { /* screen strobe still works without camera torch */ }
+  }
+
+  /* ── SOS: siren + whistle (WebAudio) ── */
+  let ac = null, sirenOsc = null, sirenLFO = null;
+  function actx() { ac = ac || new (window.AudioContext || window.webkitAudioContext)(); return ac; }
+  function toggleSiren() {
+    const tg = document.getElementById('tg-siren');
+    if (sirenOsc) { sirenOsc.stop(); sirenLFO.stop(); sirenOsc = null; tg.classList.remove('on'); return; }
+    const c = actx();
+    sirenOsc = c.createOscillator(); const gain = c.createGain(); sirenLFO = c.createOscillator();
+    const lfoGain = c.createGain();
+    sirenOsc.type = 'sawtooth'; sirenOsc.frequency.value = 700;
+    sirenLFO.frequency.value = 4; lfoGain.gain.value = 300;
+    sirenLFO.connect(lfoGain); lfoGain.connect(sirenOsc.frequency);
+    gain.gain.value = 0.18;
+    sirenOsc.connect(gain); gain.connect(c.destination);
+    sirenOsc.start(); sirenLFO.start();
+    tg.classList.add('on');
+  }
+  function whistle() {
+    const c = actx(); let t = c.currentTime;
+    for (let i = 0; i < 3; i++) {
+      const o = c.createOscillator(), g = c.createGain();
+      o.type = 'square'; o.frequency.value = 2100;
+      g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.22, t + 0.02);
+      g.gain.setValueAtTime(0.22, t + 0.18); g.gain.linearRampToValueAtTime(0, t + 0.2);
+      o.connect(g); g.connect(c.destination); o.start(t); o.stop(t + 0.22);
+      t += 0.32;
+    }
+  }
+
+  /* ── SOS: location beacon ── */
+  let lastPos = null;
+  function locate() {
+    const el = document.getElementById('coords');
+    el.textContent = 'در حال یافتن موقعیت…';
+    const show = (lat, lon, acc, real) => {
+      lastPos = { lat, lon };
+      el.textContent = `${lat.toFixed(5)}, ${lon.toFixed(5)}  (±${Math.round(acc)}m)` + (real ? '' : '  «نمونه»');
+      document.getElementById('share-loc').style.display = 'inline-block';
+    };
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        p => show(p.coords.latitude, p.coords.longitude, p.coords.accuracy || 30, true),
+        () => show(35.6997, 51.3380, 42, false), { timeout: 6000 }
+      );
+    } else show(35.6997, 51.3380, 42, false);
+  }
+  function shareLoc() {
+    if (!lastPos) return;
+    window.open(`https://maps.google.com/?q=${lastPos.lat},${lastPos.lon}`, '_blank');
+  }
+
+  /* ── Emergency kit: data, infographic, checklist ── */
+  const KIT = [
+    ['💧', 'آب آشامیدنی', '۴ لیتر/نفر در روز', '#378add'],
+    ['🥫', 'غذای کنسروی و خشک', 'برای ۳ روز', '#378add'],
+    ['🔦', 'چراغ‌قوه + باتری', '۱ عدد + یدک', '#f0853a'],
+    ['📻', 'رادیوی باتری‌خور', 'کوکی یا باتری', '#f0853a'],
+    ['🔋', 'پاوربانک + شارژر', 'شارژ کامل', '#f0853a'],
+    ['🩹', 'جعبهٔ کمک‌های اولیه', 'کامل', '#f85149'],
+    ['💊', 'داروهای ضروری', 'نسخه‌دار + مسکن', '#f85149'],
+    ['😷', 'ماسک + اقلام بهداشتی', 'چند عدد', '#f85149'],
+    ['📄', 'کپی مدارک مهم', 'در کیسهٔ ضدآب', '#3fb950'],
+    ['💵', 'پول نقد', 'اسکناس خرد', '#3fb950'],
+    ['🪖', 'سوت + چاقوی چندکاره', '۱ ست', '#3fb950'],
+    ['🧥', 'پتوی نجات + لباس گرم', '۱ نفر', '#3fb950']
+  ];
+  const KKEY = 'hamyar_kit_v1';
+  let kitChecked = {};
+  try { kitChecked = JSON.parse(localStorage.getItem(KKEY)) || {}; } catch (e) {}
+
+  function buildKitGraphic() {
+    const W = 800, cols = 3, padX = 24, gap = 14, top = 98, cellH = 92, rowGap = 14;
+    const cellW = (W - padX * 2 - gap * (cols - 1)) / cols;
+    const rows = Math.ceil(KIT.length / cols);
+    const H = top + rows * (cellH + rowGap) - rowGap + 56;
+    const F = 'Tahoma,Segoe UI,sans-serif';
+    let cells = '';
+    KIT.forEach(([ic, name, qty, col], i) => {
+      const c = i % cols, r = Math.floor(i / cols);
+      const x = padX + c * (cellW + gap), y = top + r * (cellH + rowGap), rx = x + cellW;
+      cells +=
+        `<rect x="${x}" y="${y}" width="${cellW}" height="${cellH}" rx="12" fill="#161b22" stroke="#2b313b"/>` +
+        `<circle cx="${rx - 16}" cy="${y + 16}" r="5" fill="${col}"/>` +
+        `<text x="${rx - 26}" y="${y + 58}" font-size="30" text-anchor="middle">${ic}</text>` +
+        `<text x="${rx - 56}" y="${y + 40}" text-anchor="start" direction="rtl" fill="#e6edf3" font-size="15" font-weight="600" font-family="${F}">${name}</text>` +
+        `<text x="${rx - 56}" y="${y + 64}" text-anchor="start" direction="rtl" fill="#7d8590" font-size="12" font-family="${F}">${qty}</text>`;
+    });
+    return `<svg id="kit-svg" class="kit-graphic" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" font-family="${F}">` +
+      `<rect x="0.5" y="0.5" width="${W - 1}" height="${H - 1}" rx="14" fill="#0d1117" stroke="#30363d"/>` +
+      `<text x="${W - 24}" y="46" text-anchor="start" direction="rtl" fill="#f0853a" font-size="24" font-weight="700">🎒 کیت نجات اضطراری — ۷۲ ساعته</text>` +
+      `<text x="${W - 24}" y="74" text-anchor="start" direction="rtl" fill="#7d8590" font-size="14">اقلام ضروری برای بقای ۳ روز هنگام بحران</text>` +
+      cells +
+      `<text x="${W / 2}" y="${H - 18}" text-anchor="middle" direction="rtl" fill="#7d8590" font-size="13">هر ۶ ماه تاریخ انقضا، باتری‌ها و داروها را بررسی کنید • اورژانس ۱۱۵ • آتش‌نشانی ۱۲۵</text>` +
+      `</svg>`;
+  }
+  function downloadInfographic() {
+    const svg = document.getElementById('kit-svg');
+    if (!svg) return;
+    const blob = new Blob([new XMLSerializer().serializeToString(svg)], { type: 'image/svg+xml' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = 'emergency-kit-72h.svg'; a.click();
+    URL.revokeObjectURL(url);
+  }
+  function updateKit() {
+    const n = KIT.filter((_, i) => kitChecked[i]).length;
+    const pct = Math.round(n / KIT.length * 100);
+    const bar = document.getElementById('kit-bar');
+    if (bar) { bar.style.width = pct + '%'; bar.style.background = pct >= 70 ? '#3fb950' : pct >= 35 ? '#f0853a' : '#da3633'; }
+    const p = document.getElementById('kit-pct');
+    if (p) p.textContent = toFa(pct) + '٪';
+  }
+  (function () {
+    const wrap = document.getElementById('kit-graphic-wrap');
+    if (wrap) wrap.innerHTML = buildKitGraphic();
+    const list = document.getElementById('kit-list');
+    if (list) {
+      KIT.forEach(([ic, name, qty], i) => {
+        const row = document.createElement('div');
+        row.className = 'kit-row' + (kitChecked[i] ? ' on' : '');
+        row.innerHTML = `<div class="cbox">✓</div><div class="k-ic">${ic}</div><div class="k-label">${name}</div><div class="k-qty">${qty}</div>`;
+        row.onclick = () => {
+          kitChecked[i] = !kitChecked[i];
+          row.classList.toggle('on', kitChecked[i]);
+          localStorage.setItem(KKEY, JSON.stringify(kitChecked));
+          updateKit();
+        };
+        list.appendChild(row);
+      });
+    }
+    updateKit();
+  })();
+</script>
+</body>
+</html>

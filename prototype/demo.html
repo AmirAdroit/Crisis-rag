@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+<title>همیار بحران — نمونه ویژگی‌های جدید</title>
+<style>
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  :root{
+    --bg:#0d1117; --surface:#161b22; --surface2:#21262d; --border:#30363d;
+    --accent:#e05c2a; --accent2:#f0853a; --text:#e6edf3; --muted:#7d8590;
+    --danger:#da3633; --danger2:#f85149; --ok:#3fb950;
+    --radius:14px; --font:'Segoe UI',Tahoma,'Vazirmatn',sans-serif;
+  }
+  body{background:#05070a;color:var(--text);font-family:var(--font);
+    min-height:100dvh;display:flex;align-items:center;justify-content:center;padding:18px}
+
+  /* phone frame */
+  .phone{width:100%;max-width:430px;height:min(900px,94dvh);background:var(--bg);
+    border:1px solid var(--border);border-radius:30px;overflow:hidden;
+    display:flex;flex-direction:column;position:relative;box-shadow:0 24px 70px rgba(0,0,0,.6)}
+
+  header{display:flex;align-items:center;justify-content:space-between;
+    padding:14px 18px;background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0}
+  .logo{display:flex;align-items:center;gap:10px}
+  .logo-icon{width:36px;height:36px;border-radius:9px;display:flex;align-items:center;
+    justify-content:center;font-size:20px;background:linear-gradient(135deg,var(--accent),var(--accent2))}
+  .logo h1{font-size:16px;font-weight:700;line-height:1.1}
+  .logo p{font-size:10px;color:var(--muted)}
+  .proto-badge{font-size:10px;color:var(--accent2);border:1px solid #4a2a18;
+    background:#1c130c;border-radius:20px;padding:3px 9px;white-space:nowrap}
+
+  main{flex:1;overflow-y:auto;position:relative}
+  main::-webkit-scrollbar{width:6px}
+  main::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+  .screen{display:none;padding:18px 16px 26px;animation:fade .25s ease}
+  .screen.active{display:block}
+  @keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+  .scr-title{font-size:13px;color:var(--muted);margin-bottom:4px}
+  .scr-head{font-size:20px;font-weight:700;margin-bottom:14px}
+  .scr-head small{font-size:12px;color:var(--muted);font-weight:400;display:block;margin-top:3px}
+
+  /* bottom nav */
+  nav{display:flex;background:var(--surface);border-top:1px solid var(--border);flex-shrink:0}
+  nav button{flex:1;background:none;border:none;color:var(--muted);font-family:var(--font);
+    padding:9px 2px 8px;display:flex;flex-direction:column;align-items:center;gap:3px;
+    cursor:pointer;font-size:10.5px;transition:color .15s}
+  nav button .nico{font-size:21px}
+  nav button.active{color:var(--accent2)}
+
+  /* ── PANIC grid ── */
+  .panic-intro{background:#1c1411;border:1px solid #3a2317;border-radius:var(--radius);
+    padding:11px 13px;font-size:12px;color:#f0b896;line-height:1.6;margin-bottom:14px}
+  .emerg-grid{display:grid;grid-template-columns:1fr 1fr;gap:11px}
+  .emerg-tile{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
+    padding:16px 12px;display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer;
+    text-align:center;transition:transform .1s,border-color .15s;color:var(--text);font-family:var(--font)}
+  .emerg-tile:active{transform:scale(.96)}
+  .emerg-tile:hover{border-color:var(--accent)}
+  .emerg-tile .em-ic{font-size:34px}
+  .emerg-tile .em-t{font-size:14.5px;font-weight:700}
+  .emerg-tile .em-s{font-size:11px;color:var(--muted)}
+  .emerg-tile.crit{background:#1f0f0f;border-color:#5c2323}
+  .emerg-tile.crit .em-t{color:var(--danger2)}
+
+  /* ── guided flow ── */
+  .flow{position:absolute;inset:0;background:var(--bg);display:none;flex-direction:column;z-index:30}
+  .flow.show{display:flex}
+  .flow-top{display:flex;align-items:center;gap:10px;padding:14px 16px;
+    background:var(--surface);border-bottom:1px solid var(--border)}
+  .flow-top .fic{font-size:24px}
+  .flow-top .ft{font-size:16px;font-weight:700;flex:1}
+  .flow-x{background:var(--surface2);border:1px solid var(--border);color:var(--text);
+    width:32px;height:32px;border-radius:8px;font-size:17px;cursor:pointer}
+  .progress-dots{display:flex;gap:5px;padding:12px 16px 0}
+  .progress-dots i{flex:1;height:4px;border-radius:2px;background:var(--surface2);transition:background .2s}
+  .progress-dots i.done{background:var(--accent)}
+  .progress-dots i.cur{background:var(--accent2)}
+  .flow-body{flex:1;display:flex;flex-direction:column;justify-content:center;
+    padding:20px 22px;text-align:center}
+  .step-num{font-size:13px;color:var(--accent2);font-weight:700;margin-bottom:14px}
+  .step-text{font-size:25px;line-height:1.7;font-weight:700}
+  .step-hint{font-size:14px;color:var(--muted);margin-top:16px;line-height:1.7}
+  .flow-ctrl{display:flex;gap:10px;padding:14px 16px}
+  .flow-ctrl button{flex:1;padding:15px;border-radius:12px;font-family:var(--font);
+    font-size:16px;font-weight:700;cursor:pointer;border:1px solid var(--border)}
+  .btn-prev{background:var(--surface2);color:var(--text)}
+  .btn-next{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border:none}
+  .call-bar{display:flex;align-items:center;justify-content:center;gap:8px;
+    background:var(--danger);color:#fff;padding:13px;font-size:15px;font-weight:700;
+    cursor:pointer;border:none;width:100%;font-family:var(--font)}
+
+  /* ── SOS toolkit ── */
+  .tool{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
+    padding:15px;margin-bottom:12px;display:flex;align-items:center;gap:13px}
+  .tool .t-ic{font-size:28px;width:46px;height:46px;border-radius:11px;background:var(--surface2);
+    display:flex;align-items:center;justify-content:center;flex-shrink:0}
+  .tool .t-body{flex:1}
+  .tool .t-name{font-size:15px;font-weight:700}
+  .tool .t-desc{font-size:11.5px;color:var(--muted);margin-top:2px;line-height:1.5}
+  .toggle{width:52px;height:30px;border-radius:20px;background:var(--surface2);
+    border:1px solid var(--border);position:relative;cursor:pointer;flex-shrink:0;transition:background .2s}
+  .toggle::after{content:"";position:absolute;width:22px;height:22px;border-radius:50%;
+    background:var(--muted);top:3px;right:3px;transition:.2s}
+  .toggle.on{background:#3a1c10;border-color:var(--accent)}
+  .toggle.on::after{background:var(--accent2);right:25px}
+  .coords{font-size:13px;color:var(--accent2);margin-top:6px;direction:ltr;text-align:right;font-family:monospace}
+  .mini-btn{background:var(--surface2);border:1px solid var(--border);color:var(--text);
+    font-family:var(--font);font-size:12px;padding:7px 12px;border-radius:8px;cursor:pointer;margin-top:8px}
+
+  /* strobe overlay */
+  .strobe{position:absolute;inset:0;z-index:60;display:none;align-items:flex-start;justify-content:flex-end}
+  .strobe.show{display:flex}
+  .strobe .stop{margin:16px;background:rgba(0,0,0,.6);color:#fff;border:1px solid #fff6;
+    border-radius:10px;padding:10px 16px;font-size:14px;font-weight:700;cursor:pointer;
+    font-family:var(--font);position:relative;z-index:2}
+  .strobe .label{position:absolute;top:50%;left:0;right:0;text-align:center;transform:translateY(-50%);
+    font-size:15px;color:#000;font-weight:700;mix-blend-mode:difference}
+
+  /* ── voice ── */
+  .voice-wrap{display:flex;flex-direction:column;align-items:center;gap:18px;padding:24px 10px 10px}
+  .mic{width:120px;height:120px;border-radius:50%;border:none;cursor:pointer;
+    background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;font-size:46px;
+    display:flex;align-items:center;justify-content:center;transition:transform .1s}
+  .mic:active{transform:scale(.94)}
+  .mic.listening{animation:mic 1s infinite}
+  @keyframes mic{0%,100%{box-shadow:0 0 0 0 rgba(224,92,42,.5)}50%{box-shadow:0 0 0 22px rgba(224,92,42,0)}}
+  .voice-status{font-size:15px;color:var(--muted);min-height:22px;text-align:center}
+  .voice-q{font-size:17px;font-weight:700;text-align:center;min-height:24px}
+  .voice-a{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
+    padding:14px 16px;font-size:14px;line-height:1.85;width:100%;min-height:40px}
+
+  /* ── preparedness ── */
+  .ring-wrap{display:flex;align-items:center;gap:18px;background:var(--surface);
+    border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:16px}
+  .ring{position:relative;width:96px;height:96px;flex-shrink:0}
+  .ring svg{transform:rotate(-90deg)}
+  .ring .pct{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;
+    justify-content:center}
+  .ring .pct b{font-size:24px;font-weight:700}
+  .ring .pct span{font-size:10px;color:var(--muted)}
+  .ring-info h3{font-size:15px;margin-bottom:4px}
+  .ring-info p{font-size:12px;color:var(--muted);line-height:1.6}
+  .check-row{display:flex;align-items:center;gap:11px;padding:11px 4px;border-bottom:1px solid var(--border);cursor:pointer}
+  .check-row:last-child{border-bottom:none}
+  .cbox{width:24px;height:24px;border-radius:7px;border:2px solid var(--border);flex-shrink:0;
+    display:flex;align-items:center;justify-content:center;font-size:15px;color:transparent;transition:.15s}
+  .check-row.on .cbox{background:var(--ok);border-color:var(--ok);color:#fff}
+  .check-row.on .c-label{color:var(--muted);text-decoration:line-through}
+  .c-label{font-size:14px}
+  .c-ic{font-size:18px;width:24px;text-align:center}
+  .sect-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;
+    margin:18px 2px 8px}
+  .contact{display:flex;align-items:center;gap:11px;background:var(--surface);border:1px solid var(--border);
+    border-radius:11px;padding:11px 13px;margin-bottom:8px}
+  .contact .av{width:38px;height:38px;border-radius:50%;background:var(--surface2);display:flex;
+    align-items:center;justify-content:center;font-size:18px}
+  .contact .cn{font-size:14px;font-weight:700}
+  .contact .cr{font-size:11px;color:var(--muted)}
+  .contact .call{margin-right:auto;background:#102a16;border:1px solid #1d4a2a;color:var(--ok);
+    width:38px;height:38px;border-radius:50%;font-size:17px;cursor:pointer}
+
+  /* ── chat ── */
+  .chat-msgs{display:flex;flex-direction:column;gap:14px;margin-bottom:14px}
+  .cmsg{display:flex;gap:9px}
+  .cmsg.user{flex-direction:row-reverse}
+  .cav{width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;
+    font-size:15px;flex-shrink:0}
+  .cmsg.bot .cav{background:linear-gradient(135deg,var(--accent),var(--accent2))}
+  .cmsg.user .cav{background:linear-gradient(135deg,#2d7fff,#5fa8ff)}
+  .cbub{max-width:80%;padding:11px 14px;border-radius:12px;font-size:14px;line-height:1.75;
+    background:var(--surface);border:1px solid var(--border)}
+  .cmsg.user .cbub{background:#1f2937;border-color:#2d3748}
+  .chips{display:flex;flex-wrap:wrap;gap:7px;margin-top:6px}
+  .chip{background:var(--surface2);border:1px solid var(--border);border-radius:18px;padding:6px 12px;
+    font-size:12px;color:var(--text);cursor:pointer;font-family:var(--font)}
+  .chip:hover{border-color:var(--accent)}
+  .save-tag{display:inline-flex;align-items:center;gap:5px;font-size:11px;color:var(--accent2);
+    margin-top:8px;cursor:pointer}
+  .chat-input{display:flex;gap:8px;align-items:center;background:var(--surface2);border:1px solid var(--border);
+    border-radius:12px;padding:8px 10px;margin-top:6px}
+  .chat-input input{flex:1;background:none;border:none;outline:none;color:var(--text);
+    font-family:var(--font);font-size:14px;direction:rtl}
+  .chat-input button{background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;
+    width:34px;height:34px;border-radius:8px;color:#fff;font-size:16px;cursor:pointer;flex-shrink:0}
+  .offline-note{font-size:11px;color:var(--muted);text-align:center;margin-top:10px;line-height:1.6}
+  .disclaimer{font-size:10.5px;color:#6e574b;text-align:center;padding:10px 16px;line-height:1.6}
+</style>
+</head>
+<body>
+<div class="phone">
+
+  <header>
+    <div class="logo">
+      <div class="logo-icon">🛡️</div>
+      <div>
+        <h1>همیار بحران</h1>
+        <p>دستیار بقا در شرایط اضطراری</p>
+      </div>
+    </div>
+    <div class="proto-badge">نمونهٔ ویژگی‌های پیشنهادی</div>
+  </header>
+
+  <main>
+    <!-- ░░ PANIC ░░ -->
+    <section class="screen active" id="scr-panic">
+      <div class="scr-title">حالت اضطرار</div>
+      <div class="scr-head">الان چه اتفاقی افتاده؟<small>روی وضعیت بزن تا گام‌به‌گام راهنمایی شوی — بدون تایپ.</small></div>
+      <div class="panic-intro">⚡ در لحظهٔ بحران فرصت تایپ کردن نیست. یک دکمه بزن و فقط گام فعلی را انجام بده.</div>
+      <div class="emerg-grid" id="emerg-grid"></div>
+    </section>
+
+    <!-- ░░ SOS ░░ -->
+    <section class="screen" id="scr-sos">
+      <div class="scr-title">جعبه‌ابزار نجات</div>
+      <div class="scr-head">ابزارهای کمک و نجات<small>این ابزارها واقعاً کار می‌کنند — همین حالا امتحان کن.</small></div>
+
+      <div class="tool">
+        <div class="t-ic">🔦</div>
+        <div class="t-body">
+          <div class="t-name">چراغ‌قوه + علامت SOS مورس</div>
+          <div class="t-desc">صفحه با کد بین‌المللی نجات (···———···) چشمک می‌زند تا دیده شوی.</div>
+        </div>
+        <div class="toggle" id="tg-strobe" onclick="toggleStrobe()"></div>
+      </div>
+
+      <div class="tool">
+        <div class="t-ic">📢</div>
+        <div class="t-body">
+          <div class="t-name">آژیر اضطراری</div>
+          <div class="t-desc">صدای بلند و نوسانی برای جلب توجه و درخواست کمک.</div>
+        </div>
+        <div class="toggle" id="tg-siren" onclick="toggleSiren()"></div>
+      </div>
+
+      <div class="tool" style="display:block">
+        <div style="display:flex;align-items:center;gap:13px">
+          <div class="t-ic">📍</div>
+          <div class="t-body">
+            <div class="t-name">فانوس موقعیت</div>
+            <div class="t-desc">موقعیت دقیقت را برای تیم نجات بفرست.</div>
+          </div>
+          <button class="mini-btn" onclick="locate()">یافتن موقعیت</button>
+        </div>
+        <div class="coords" id="coords">— هنوز موقعیتی ثبت نشده —</div>
+        <button class="mini-btn" id="share-loc" style="display:none" onclick="shareLoc()">📤 اشتراک موقعیت / مشاهده روی نقشه</button>
+      </div>
+
+      <div class="tool">
+        <div class="t-ic">🔊</div>
+        <div class="t-body">
+          <div class="t-name">سوت دیجیتال</div>
+          <div class="t-desc">سه بوق کوتاه بلند — علامت استاندارد درخواست کمک.</div>
+        </div>
+        <button class="mini-btn" onclick="whistle()">پخش سوت</button>
+      </div>
+    </section>
+
+    <!-- ░░ VOICE ░░ -->
+    <section class="screen" id="scr-voice">
+      <div class="scr-title">دستیار صوتی</div>
+      <div class="scr-head">بدون دست، فقط حرف بزن<small>وقتی دست‌هایت مشغول یا مجروح است، یا جایی تاریک است.</small></div>
+      <div class="voice-wrap">
+        <button class="mic" id="mic" onclick="voiceTap()">🎤</button>
+        <div class="voice-status" id="v-status">برای پرسیدن، دکمه را بزن</div>
+        <div class="voice-q" id="v-q"></div>
+        <div class="voice-a" id="v-a"></div>
+      </div>
+    </section>
+
+    <!-- ░░ PREPAREDNESS ░░ -->
+    <section class="screen" id="scr-prep">
+      <div class="scr-title">آمادگی</div>
+      <div class="scr-head">آمادگی خانوار</div>
+      <div class="ring-wrap">
+        <div class="ring">
+          <svg width="96" height="96" viewBox="0 0 96 96">
+            <circle cx="48" cy="48" r="42" fill="none" stroke="#21262d" stroke-width="9"/>
+            <circle id="ring-fg" cx="48" cy="48" r="42" fill="none" stroke="#3fb950" stroke-width="9"
+              stroke-linecap="round" stroke-dasharray="264" stroke-dashoffset="264"/>
+          </svg>
+          <div class="pct"><b id="ring-pct">0%</b><span>آماده</span></div>
+        </div>
+        <div class="ring-info">
+          <h3 id="ring-title">بیایید آماده شویم</h3>
+          <p id="ring-sub">اقلام کیت اضطراری‌ات را تیک بزن تا امتیاز آمادگی‌ات بالا برود.</p>
+        </div>
+      </div>
+      <div class="sect-label">کیت اضطراری ۷۲ ساعته</div>
+      <div id="kit-list"></div>
+
+      <div class="sect-label">مخاطبین اضطراری</div>
+      <div class="contact"><div class="av">🚑</div><div><div class="cn">اورژانس پزشکی</div><div class="cr">۱۱۵</div></div><button class="call" onclick="fakeCall('۱۱۵')">📞</button></div>
+      <div class="contact"><div class="av">🚒</div><div><div class="cn">آتش‌نشانی</div><div class="cr">۱۲۵</div></div><button class="call" onclick="fakeCall('۱۲۵')">📞</button></div>
+      <div class="contact"><div class="av">👮</div><div><div class="cn">پلیس</div><div class="cr">۱۱۰</div></div><button class="call" onclick="fakeCall('۱۱۰')">📞</button></div>
+    </section>
+
+    <!-- ░░ CHAT ░░ -->
+    <section class="screen" id="scr-chat">
+      <div class="scr-title">گفتگو</div>
+      <div class="scr-head">پرسش و پاسخ هوشمند<small>همان تجربهٔ فعلی، با پاسخ تدریجی و پیشنهاد سؤال بعدی.</small></div>
+      <div class="chat-msgs" id="chat-msgs"></div>
+      <div class="chat-input">
+        <input id="chat-in" placeholder="سؤالت را بنویس…" onkeydown="if(event.key==='Enter')chatSend()"/>
+        <button onclick="chatSend()">➤</button>
+      </div>
+      <div class="offline-note">📥 پاسخ‌های پرتکرار به‌صورت آفلاین ذخیره می‌شوند تا هنگام قطع اینترنت هم در دسترس باشند.</div>
+    </section>
+  </main>
+
+  <nav>
+    <button class="active" data-scr="panic" onclick="go('panic',this)"><span class="nico">🆘</span>اضطرار</button>
+    <button data-scr="sos" onclick="go('sos',this)"><span class="nico">🔦</span>ابزار نجات</button>
+    <button data-scr="voice" onclick="go('voice',this)"><span class="nico">🎤</span>صوتی</button>
+    <button data-scr="prep" onclick="go('prep',this)"><span class="nico">🎒</span>آمادگی</button>
+    <button data-scr="chat" onclick="go('chat',this)"><span class="nico">💬</span>گفتگو</button>
+  </nav>
+
+  <!-- guided flow overlay -->
+  <div class="flow" id="flow">
+    <div class="flow-top">
+      <span class="fic" id="flow-ic">🌍</span>
+      <span class="ft" id="flow-title">زلزله</span>
+      <button class="flow-x" onclick="closeFlow()">✕</button>
+    </div>
+    <div class="progress-dots" id="dots"></div>
+    <div class="flow-body">
+      <div class="step-num" id="step-num">گام ۱</div>
+      <div class="step-text" id="step-text"></div>
+      <div class="step-hint" id="step-hint"></div>
+    </div>
+    <div class="flow-ctrl">
+      <button class="btn-prev" onclick="step(-1)">گام قبل</button>
+      <button class="btn-next" id="next-btn" onclick="step(1)">گام بعد ›</button>
+    </div>
+    <button class="call-bar" onclick="fakeCall('۱۱۵')">📞 تماس فوری با اورژانس ۱۱۵</button>
+  </div>
+
+  <!-- strobe overlay -->
+  <div class="strobe" id="strobe">
+    <div class="label">SOS</div>
+    <button class="stop" onclick="toggleStrobe()">توقف چشمک ✕</button>
+  </div>
+
+</div>
+
+<div class="disclaimer">نمونهٔ نمایشی (Prototype) — محتوای پزشکی صرفاً جهت نمایش ویژگی است. در اورژانس واقعی با ۱۱۵ تماس بگیرید.</div>
+
+<script>
+/* ───────────── navigation ───────────── */
+function go(scr,btn){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('scr-'+scr).classList.add('active');
+  document.querySelectorAll('nav button').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelector('main').scrollTop=0;
+}
+
+/* ───────────── panic flows ───────────── */
+const FLOWS={
+  earthquake:{ic:'🌍',title:'زلزله — همین حالا',crit:true,steps:[
+    {t:'سرجایت بمان. بیرون ندو.',h:'بیشترِ آسیب‌ها هنگام فرار رخ می‌دهد.'},
+    {t:'بنشین و زیر میز محکم پناه بگیر',h:'Drop — روی زمین بنشین.'},
+    {t:'سر و گردنت را با دست بپوشان',h:'Cover — از اشیای در حال سقوط محافظت کن.'},
+    {t:'به پایهٔ میز بچسب تا لرزش تمام شود',h:'Hold On — اگر میز حرکت کرد همراهش برو.'},
+    {t:'دور از پنجره، شیشه و کمد بلند بمان',h:'این اجسام واژگون یا خرد می‌شوند.'},
+    {t:'پس از توقف لرزش، با احتیاط به فضای باز برو',h:'از آسانسور استفاده نکن؛ مراقب پس‌لرزه باش.'}
+  ]},
+  bleeding:{ic:'🩸',title:'خونریزی شدید',crit:true,steps:[
+    {t:'اگر دستکش داری بپوش',h:'برای ایمنی خودت.'},
+    {t:'با پارچهٔ تمیز مستقیم و محکم روی زخم فشار بده',h:'فشار ثابت مهم‌ترین کار است.'},
+    {t:'فشار را قطع نکن؛ پارچه را برندار',h:'اگر خیس شد، لایهٔ تازه رویش بگذار.'},
+    {t:'در صورت امکان، عضو را بالاتر از قلب نگه دار',h:'به کاهش خونریزی کمک می‌کند.'},
+    {t:'اگر بند نمی‌آید، تورنیکت بالای زخم ببند',h:'زمان بستن را یادداشت کن.'},
+    {t:'با ۱۱۵ تماس بگیر و فرد را گرم نگه دار',h:'مراقب علائم شوک باش.'}
+  ]},
+  fire:{ic:'🔥',title:'آتش‌سوزی — فرار',crit:true,steps:[
+    {t:'خم شو و زیر دود حرکت کن',h:'هوای سالم‌تر نزدیک زمین است.'},
+    {t:'قبل از باز کردن در، پشت آن را با پشت دست لمس کن',h:'اگر داغ بود، باز نکن؛ راه دیگری پیدا کن.'},
+    {t:'از نزدیک‌ترین خروج امن بیرون برو',h:'هرگز از آسانسور استفاده نکن.'},
+    {t:'اگر لباست آتش گرفت: بایست، بخواب، بغلت',h:'Stop, Drop, Roll.'},
+    {t:'بیرون برو و دیگر برنگرد',h:'با آتش‌نشانی ۱۲۵ تماس بگیر.'},
+    {t:'اگر گیر افتادی، درز در را ببند و از پنجره علامت بده',h:'با پارچه یا چراغ‌قوه خود را نشان بده.'}
+  ]},
+  cpr:{ic:'❤️',title:'ایست قلبی — CPR',crit:true,steps:[
+    {t:'هوشیاری را بررسی کن: شانه را تکان بده و صدا بزن',h:'مطمئن شو صحنه امن است.'},
+    {t:'اگر پاسخ نمی‌دهد و نفس نمی‌کشد، با ۱۱۵ تماس بگیر',h:'بلندگو را روشن کن.'},
+    {t:'کف دست را وسط قفسهٔ سینه بگذار، دست دیگر رویش',h:'انگشتان درهم قفل.'},
+    {t:'۳۰ بار محکم و سریع فشار بده',h:'عمق ۵–۶ سانتی‌متر، سرعت ۱۰۰–۱۲۰ در دقیقه.'},
+    {t:'در صورت آموزش‌دیده بودن، ۲ تنفس نجات بده',h:'سپس چرخهٔ ۳۰:۲ را ادامه بده.'},
+    {t:'تا رسیدن اورژانس یا آمدن دستگاه شوک ادامه بده',h:'دست نگه ندار.'}
+  ]},
+  flood:{ic:'🌊',title:'سیل',steps:[
+    {t:'فوراً به بلندی برو',h:'حتی ۱۵ سانتی‌متر آب جاری می‌تواند تو را بیندازد.'},
+    {t:'وارد آب جاری یا سیلابی نشو',h:'عمق و جریان فریبنده است.'},
+    {t:'با خودرو وارد مسیر آب‌گرفته نشو',h:'۳۰ سانتی‌متر آب خودرو را می‌برد.'},
+    {t:'برق و گاز را قطع کن اگر زمان داری',h:'خطر برق‌گرفتگی و نشت.'},
+    {t:'هشدارهای رسمی را دنبال کن و آمادهٔ تخلیه باش',h:'کیت اضطراری را بردار.'}
+  ]},
+  shelter:{ic:'⚠️',title:'بمباران / پناه‌گیری',steps:[
+    {t:'به پایین‌ترین طبقه یا زیرزمین برو',h:'دور از پنجره‌ها.'},
+    {t:'زیر سازهٔ محکم (راه‌پله، دیوار باربر) پناه بگیر',h:'دهان را باز نگه دار تا گوش‌ها آسیب نبینند.'},
+    {t:'از پنجره، شیشه و بالکن دور بمان',h:'موج انفجار شیشه را پرتاب می‌کند.'},
+    {t:'بعد از انفجار منتظر بمان؛ ممکن است حملهٔ دوم باشد',h:'تا اعلام پایان خطر بیرون نرو.'},
+    {t:'کیت اضطراری و مدارک را نزدیک خود نگه دار',h:'آمادهٔ جابه‌جایی سریع باش.'}
+  ]}
+};
+const TILES=[
+  ['earthquake','🌍','زلزله','حین لرزش'],
+  ['bleeding','🩸','خونریزی شدید','کنترل خونریزی'],
+  ['fire','🔥','آتش‌سوزی','فرار امن'],
+  ['cpr','❤️','ایست قلبی','CPR'],
+  ['flood','🌊','سیل','به بلندی برو'],
+  ['shelter','⚠️','بمباران','پناه‌گیری']
+];
+const grid=document.getElementById('emerg-grid');
+TILES.forEach(([k,ic,t,s])=>{
+  const b=document.createElement('button');
+  b.className='emerg-tile'+(FLOWS[k].crit?' crit':'');
+  b.innerHTML=`<span class="em-ic">${ic}</span><span class="em-t">${t}</span><span class="em-s">${s}</span>`;
+  b.onclick=()=>openFlow(k);
+  grid.appendChild(b);
+});
+
+let curFlow=null,curStep=0;
+function openFlow(k){
+  curFlow=FLOWS[k];curStep=0;
+  document.getElementById('flow-ic').textContent=curFlow.ic;
+  document.getElementById('flow-title').textContent=curFlow.title;
+  const dots=document.getElementById('dots');dots.innerHTML='';
+  curFlow.steps.forEach(()=>dots.appendChild(document.createElement('i')));
+  renderStep();
+  document.getElementById('flow').classList.add('show');
+}
+function renderStep(){
+  const s=curFlow.steps[curStep];
+  document.getElementById('step-num').textContent='گام '+toFa(curStep+1)+' از '+toFa(curFlow.steps.length);
+  document.getElementById('step-text').textContent=s.t;
+  document.getElementById('step-hint').textContent=s.h||'';
+  [...document.getElementById('dots').children].forEach((d,i)=>{
+    d.className=i<curStep?'done':i===curStep?'cur':'';
+  });
+  const last=curStep===curFlow.steps.length-1;
+  document.getElementById('next-btn').textContent=last?'پایان ✓':'گام بعد ›';
+}
+function step(d){
+  const last=curStep===curFlow.steps.length-1;
+  if(d>0&&last){closeFlow();return;}
+  curStep=Math.max(0,Math.min(curFlow.steps.length-1,curStep+d));
+  renderStep();
+}
+function closeFlow(){document.getElementById('flow').classList.remove('show');}
+
+/* ───────────── SOS: strobe (Morse SOS) ───────────── */
+let strobeTimers=[],strobeOn=false,torchTrack=null;
+const MORSE=[200,200,200,200,200,600, 600,200,600,200,600,600, 200,200,200,200,200,1400]; // on,off... SOS
+async function toggleStrobe(){
+  strobeOn=!strobeOn;
+  document.getElementById('tg-strobe').classList.toggle('on',strobeOn);
+  const ov=document.getElementById('strobe');
+  if(strobeOn){
+    ov.classList.add('show');
+    tryTorch(true);
+    runMorse();
+  }else{
+    ov.classList.remove('show');ov.style.background='';
+    strobeTimers.forEach(clearTimeout);strobeTimers=[];
+    tryTorch(false);
+  }
+}
+function runMorse(){
+  let t=0,i=0;
+  const ov=document.getElementById('strobe');
+  function loop(){
+    strobeTimers=[];t=0;
+    MORSE.forEach((dur,idx)=>{
+      const on=idx%2===0;
+      strobeTimers.push(setTimeout(()=>{
+        ov.style.background=on?'#ffffff':'#000000';
+        tryTorch(on);
+      },t));
+      t+=dur;
+    });
+    strobeTimers.push(setTimeout(()=>{if(strobeOn)loop();},t));
+  }
+  loop();
+}
+async function tryTorch(on){
+  try{
+    if(on&&!torchTrack){
+      const s=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}});
+      torchTrack=s.getVideoTracks()[0];
+    }
+    if(torchTrack&&torchTrack.getCapabilities&&torchTrack.getCapabilities().torch){
+      await torchTrack.applyConstraints({advanced:[{torch:on}]});
+    }
+    if(!strobeOn&&torchTrack){torchTrack.stop();torchTrack=null;}
+  }catch(e){/* screen strobe still works */}
+}
+
+/* ───────────── SOS: siren + whistle (WebAudio) ───────────── */
+let ac=null,sirenOsc=null,sirenGain=null,sirenLFO=null;
+function actx(){ac=ac||new (window.AudioContext||window.webkitAudioContext)();return ac;}
+function toggleSiren(){
+  const tg=document.getElementById('tg-siren');
+  if(sirenOsc){sirenOsc.stop();sirenLFO.stop();sirenOsc=null;tg.classList.remove('on');return;}
+  const c=actx();
+  sirenOsc=c.createOscillator();sirenGain=c.createGain();sirenLFO=c.createOscillator();
+  const lfoGain=c.createGain();
+  sirenOsc.type='sawtooth';sirenOsc.frequency.value=700;
+  sirenLFO.frequency.value=4;lfoGain.gain.value=300;
+  sirenLFO.connect(lfoGain);lfoGain.connect(sirenOsc.frequency);
+  sirenGain.gain.value=.18;
+  sirenOsc.connect(sirenGain);sirenGain.connect(c.destination);
+  sirenOsc.start();sirenLFO.start();
+  tg.classList.add('on');
+}
+function whistle(){
+  const c=actx();let t=c.currentTime;
+  for(let i=0;i<3;i++){
+    const o=c.createOscillator(),g=c.createGain();
+    o.type='square';o.frequency.value=2100;
+    g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.22,t+.02);
+    g.gain.setValueAtTime(.22,t+.18);g.gain.linearRampToValueAtTime(0,t+.2);
+    o.connect(g);g.connect(c.destination);o.start(t);o.stop(t+.22);
+    t+=.32;
+  }
+}
+
+/* ───────────── SOS: location ───────────── */
+let lastPos=null;
+function locate(){
+  const el=document.getElementById('coords');
+  el.textContent='در حال یافتن موقعیت…';
+  const show=(lat,lon,acc,real)=>{
+    lastPos={lat,lon};
+    el.textContent=`${lat.toFixed(5)}, ${lon.toFixed(5)}  (±${Math.round(acc)}m)`+(real?'':'  «نمونه»');
+    document.getElementById('share-loc').style.display='inline-block';
+  };
+  if(navigator.geolocation){
+    navigator.geolocation.getCurrentPosition(
+      p=>show(p.coords.latitude,p.coords.longitude,p.coords.accuracy||30,true),
+      ()=>show(35.6997,51.3380,42,false),{timeout:6000}
+    );
+  }else show(35.6997,51.3380,42,false);
+}
+function shareLoc(){
+  if(!lastPos)return;
+  openMaps(`https://maps.google.com/?q=${lastPos.lat},${lastPos.lon}`);
+}
+function openMaps(u){window.open(u,'_blank');}
+
+/* ───────────── voice ───────────── */
+const VOICE_DEMO={q:'پدرم افتاده و نفس نمی‌کشه، چیکار کنم؟',
+  a:'فوراً با ۱۱۵ تماس بگیر و بلندگو را روشن کن. وسط قفسهٔ سینه را با کف دست محکم و سریع فشار بده — ۳۰ فشار، عمق حدود ۵ سانتی‌متر، سرعت ۱۰۰ تا ۱۲۰ در دقیقه. تا رسیدن اورژانس ادامه بده.'};
+let listening=false;
+function voiceTap(){
+  const mic=document.getElementById('mic'),st=document.getElementById('v-status'),
+        q=document.getElementById('v-q'),a=document.getElementById('v-a');
+  if(listening)return;
+  listening=true;q.textContent='';a.textContent='';
+  mic.classList.add('listening');st.textContent='🎙️ در حال گوش دادن…';
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  const finish=(text)=>{
+    mic.classList.remove('listening');listening=false;st.textContent='پاسخ:';
+    q.textContent='«'+text+'»';
+    typeOut(a,VOICE_DEMO.a,()=>speak(VOICE_DEMO.a));
+  };
+  if(SR){
+    try{
+      const r=new SR();r.lang='fa-IR';r.interimResults=false;
+      r.onresult=e=>finish(e.results[0][0].transcript);
+      r.onerror=()=>setTimeout(()=>finish(VOICE_DEMO.q),900);
+      r.onend=()=>{if(listening)finish(VOICE_DEMO.q);};
+      r.start();
+      return;
+    }catch(e){}
+  }
+  setTimeout(()=>finish(VOICE_DEMO.q),1600);
+}
+function typeOut(el,text,done){
+  el.textContent='';let i=0;
+  (function t(){if(i<=text.length){el.textContent=text.slice(0,i++);setTimeout(t,16);}else if(done)done();})();
+}
+function speak(text){
+  try{const u=new SpeechSynthesisUtterance(text);u.lang='fa-IR';u.rate=.95;speechSynthesis.speak(u);}catch(e){}
+}
+
+/* ───────────── preparedness ───────────── */
+const KIT=[
+  ['💧','آب — ۴ لیتر برای هر نفر در روز'],['🥫','غذای کنسروی و خشک ۳ روزه'],
+  ['🔦','چراغ‌قوه و باتری یدک'],['📻','رادیوی باتری‌خور یا کوکی'],
+  ['🩹','جعبهٔ کمک‌های اولیه'],['💊','داروهای ضروری خانواده'],
+  ['📄','کپی مدارک مهم در کیسهٔ ضدآب'],['💵','پول نقد'],
+  ['🪖','سوت، چاقو و طناب'],['🔋','پاوربانک و شارژر'],
+  ['🧴','اقلام بهداشتی و دستمال مرطوب'],['🧥','پوشاک گرم و پتوی نجات']
+];
+const KEY='hamyar_kit_v1';
+let checked={};
+try{checked=JSON.parse(localStorage.getItem(KEY))||{};}catch(e){}
+const kitList=document.getElementById('kit-list');
+KIT.forEach(([ic,label],i)=>{
+  const row=document.createElement('div');
+  row.className='check-row'+(checked[i]?' on':'');
+  row.innerHTML=`<div class="cbox">✓</div><div class="c-ic">${ic}</div><div class="c-label">${label}</div>`;
+  row.onclick=()=>{checked[i]=!checked[i];row.classList.toggle('on',checked[i]);
+    localStorage.setItem(KEY,JSON.stringify(checked));updateRing();};
+  kitList.appendChild(row);
+});
+function updateRing(){
+  const n=KIT.filter((_,i)=>checked[i]).length,pct=Math.round(n/KIT.length*100);
+  document.getElementById('ring-fg').style.strokeDashoffset=264-264*pct/100;
+  document.getElementById('ring-pct').textContent=toFa(pct)+'%';
+  const fg=document.getElementById('ring-fg');
+  fg.setAttribute('stroke',pct>=70?'#3fb950':pct>=35?'#f0853a':'#da3633');
+  const title=document.getElementById('ring-title'),sub=document.getElementById('ring-sub');
+  if(pct===100){title.textContent='کاملاً آماده‌ای! ✅';sub.textContent='کیتت کامل است. هر ۶ ماه تاریخ انقضا را بررسی کن.';}
+  else if(pct>=70){title.textContent='تقریباً آماده';sub.textContent='فقط چند قلم باقی مانده.';}
+  else if(pct>=35){title.textContent='در مسیر آمادگی';sub.textContent='ادامه بده تا کیتت کامل شود.';}
+  else{title.textContent='بیایید آماده شویم';sub.textContent='اقلام کیت اضطراری‌ات را تیک بزن تا امتیاز آمادگی‌ات بالا برود.';}
+}
+updateRing();
+
+/* ───────────── chat ───────────── */
+const CANNED={
+  'زلزله':'هنگام زلزله: بنشین، زیر میز محکم پناه بگیر، سر و گردنت را بپوشان و به پایهٔ میز بچسب تا لرزش تمام شود. از پنجره و اجسام سنگین دور بمان و پس از توقف لرزش با احتیاط به فضای باز برو.',
+  'آب':'برای تصفیهٔ آب: ابتدا با پارچه ذرات را جدا کن، سپس آب را یک دقیقهٔ کامل بجوشان (در ارتفاع بالا ۳ دقیقه). اگر امکان جوشاندن نیست، به ازای هر لیتر ۲ قطره وایتکس بدون عطر بریز و ۳۰ دقیقه صبر کن.',
+  'کیت':'کیت اضطراری باید شامل آب (۴ لیتر در روز برای هر نفر)، غذای ۳ روزه، چراغ‌قوه، رادیوی باتری‌خور، جعبهٔ کمک‌های اولیه، داروها، کپی مدارک، پول نقد و پتوی نجات باشد.',
+  'default':'برای راهنمایی دقیق، وضعیتت را کمی روشن‌تر بگو. در شرایط اورژانسی همیشه ابتدا با ۱۱۵ تماس بگیر.'
+};
+const FOLLOWUPS={
+  'زلزله':['بعد از زلزله چه کنم؟','اگر زیر آوار ماندم چطور؟'],
+  'آب':['چقدر آب ذخیره کنم؟','آب باران سالم است؟'],
+  'کیت':['برای کودک چه اضافه کنم؟','کیت خودرو چه باشد؟'],
+  'default':['کیت اضطراری چه باشد؟','چطور آب تصفیه کنم؟']
+};
+const cm=document.getElementById('chat-msgs');
+addBot('سلام! من همیار بحران هستم. چه کمکی از دستم برمی‌آید؟',['در زلزله چه کنم؟','چطور آب تصفیه کنم؟']);
+function chatSend(){
+  const inp=document.getElementById('chat-in'),q=inp.value.trim();if(!q)return;
+  inp.value='';addUser(q);
+  const key=q.includes('زلزله')?'زلزله':(q.includes('آب')||q.includes('تصفیه'))?'آب':q.includes('کیت')?'کیت':'default';
+  setTimeout(()=>streamBot(CANNED[key],FOLLOWUPS[key]),350);
+}
+function addUser(t){
+  const d=document.createElement('div');d.className='cmsg user';
+  d.innerHTML=`<div class="cav">👤</div><div class="cbub">${esc(t)}</div>`;
+  cm.appendChild(d);scrollChat();
+}
+function addBot(t,chips){
+  const d=document.createElement('div');d.className='cmsg bot';
+  d.innerHTML=`<div class="cav">🛡️</div><div class="cbub">${esc(t)}${chipsHtml(chips)}</div>`;
+  cm.appendChild(d);scrollChat();
+}
+function streamBot(t,chips){
+  const d=document.createElement('div');d.className='cmsg bot';
+  d.innerHTML=`<div class="cav">🛡️</div><div class="cbub"><span class="bt"></span></div>`;
+  cm.appendChild(d);const span=d.querySelector('.bt');let i=0;scrollChat();
+  (function ty(){
+    if(i<=t.length){span.textContent=t.slice(0,i++);scrollChat();setTimeout(ty,14);}
+    else{d.querySelector('.cbub').innerHTML=esc(t)+chipsHtml(chips)+
+      '<div class="save-tag">📥 ذخیره برای دسترسی آفلاین</div>';scrollChat();}
+  })();
+}
+function chipsHtml(chips){
+  if(!chips||!chips.length)return'';
+  return '<div class="chips">'+chips.map(c=>`<span class="chip" onclick="askChip(this)">${esc(c)}</span>`).join('')+'</div>';
+}
+function askChip(el){document.getElementById('chat-in').value=el.textContent;chatSend();}
+function scrollChat(){document.querySelector('#scr-chat').scrollIntoView&&0;const m=document.querySelector('main');m.scrollTop=m.scrollHeight;}
+
+/* ───────────── utils ───────────── */
+function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function toFa(n){return String(n).replace(/[0-9]/g,d=>'۰۱۲۳۴۵۶۷۸۹'[d]);}
+function fakeCall(num){alert('در نسخهٔ نهایی، تماس با '+num+' برقرار می‌شود.\n(این یک نمونهٔ نمایشی است)');}
+</script>
+</body>
+</html>

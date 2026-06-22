@@ -52,12 +52,29 @@ def chunk_text(text: str, size: int, overlap: int):
     return chunks
 
 
-# Map filename -> domain category for metadata + filtering
+# Map filename -> domain category for metadata + filtering.
+# Key is matched as a substring of the filename (see category_of).
 CATEGORY = {
     "first_aid": "کمک‌های اولیه",
     "stress": "مدیریت استرس",
     "emergency_kit": "بسته اضطراری",
     "utility": "قطع خدمات شهری",
+    "earthquake": "زلزله",
+    "tsunami": "سونامی",
+    "flood": "سیل و طوفان",
+    "volcanic": "آتشفشان",
+    "tornado": "گردباد",
+    "war": "جنگ و درگیری مسلحانه",
+    "nuclear": "حوادث هسته‌ای",
+    "chemical": "حوادث شیمیایی و بیولوژیکی",
+    "fire": "آتش‌سوزی و انفجار",
+    "drought": "خشکسالی و کمبود آب",
+    "famine": "قحطی و کمبود غذا",
+    "extreme_temperature": "گرما و سرمای شدید",
+    "pandemic": "همه‌گیری و بیماری‌های واگیردار",
+    "cyber": "قطع زیرساخت‌های حیاتی",
+    "search_rescue": "جستجو و نجات",
+    "navigation": "ناوبری و سیگنال نجات",
 }
 
 

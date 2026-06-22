@@ -5,5 +5,7 @@ __pycache__/
 .env
 *.qdrant
 qdrant_storage/
+storage/
+tools/
 models/
 .claude/
