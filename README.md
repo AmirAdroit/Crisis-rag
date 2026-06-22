@@ -1,10 +1,25 @@
 # همیار بحران — Crisis Survival Skills RAG Assistant
 
-A Persian-language, domain-restricted RAG chatbot for rapid crisis-survival training:
-first aid, stress management, emergency kits, and utility-outage survival.
+A domain-restricted RAG chatbot for rapid crisis-survival training across ~20 topics
+(first aid, natural disasters, human-caused crises, emergency kits, utility outages, …).
+Replies in the user's language (Persian or English) and supports multi-turn follow-ups.
 
-Stack: **Qwen2.5-7B-Instruct** (vLLM) + **RAG** + **Prompt Engineering**, with
-multilingual embeddings, a reranker, Qdrant vector DB, and a FastAPI service.
+Stack: an **OpenAI-compatible LLM** (local **Qwen2.5-7B-Instruct** via Ollama by default,
+provider-swappable to a hosted API) + **RAG** + **Prompt Engineering**, with multilingual
+embeddings, a reranker, Qdrant vector DB, and a FastAPI service.
+
+---
+
+## Features (web UI)
+
+`app/static/index.html` is a single-file, dark, RTL app with four tabs:
+
+- **گفتگو (chat)** — RAG chat with **multi-turn** context (last ~3 turns, client-side) and a **«گفتگوی جدید»** reset button to start fresh. Replies in the user's language.
+- **حالت اضطرار (Panic Mode)** — tap an emergency (earthquake, severe bleeding, fire, CPR, flood, shelter) → full-screen, one-step-at-a-time guidance with a fixed 115 call bar.
+- **جعبه‌ابزار نجات (SOS)** — alarm + whistle (WebAudio), a Morse-SOS screen strobe, and a GPS location beacon.
+- **کیت اضطراری (go-bag)** — a downloadable SVG infographic + a checklist with a readiness score saved in `localStorage`.
+
+Panic Mode, SOS, and the kit are **fully client-side** and work offline (no backend/model). Only chat calls the API.
 
 ---
 
@@ -36,7 +51,7 @@ multilingual embeddings, a reranker, Qdrant vector DB, and a FastAPI service.
 - **Vector DB** (Qdrant): cosine similarity search over chunks.
 - **Reranker** (`bge-reranker-v2-m3`): reorders candidates by true relevance, cuts noise before the LLM.
 - **LLM** (Qwen2.5-7B-Instruct via vLLM): generates grounded Persian answers.
-- **Domain guard + system prompt**: enforce Persian-only, domain-only, source-grounded, safety-first behavior.
+- **Domain guard + system prompt**: language-matched (Persian/English), domain-only (reranker-score guard), source-grounded, safety-first. Refuses off-topic and asks a clarifying question when a scenario is ambiguous.
 
 **Data flow**: query → embed → retrieve 12 → rerank to 4 → relevance check → grounded prompt → Qwen → answer + citations.
 
