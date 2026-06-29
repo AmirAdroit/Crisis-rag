@@ -205,5 +205,36 @@ crisis-rag/
 ## 11. Maintenance & testing
 
 - **Update knowledge**: edit `data/raw/*.md`, re-run `python -m scripts.ingest`. No retraining.
-- **Tune relevance**: raise `domain.min_relevance_for_answer` if it answers off-topic; lower if it over-refuses.
+- **Tune relevance**: the primary out-of-domain guard is `domain.min_rerank_score` (reranker score, default `0.02`). Raise it if it answers off-topic; lower if it over-refuses. `domain.min_relevance_for_answer` (vector score) is only the fallback when the reranker is disabled.
 - **Evaluate**: keep a `tests/qa.jsonl` of question→expected-source pairs; assert the correct `source` appears in `sources` (retrieval accuracy is the thing to measure for RAG).
+
+---
+
+## 12. Current status, known limitations & roadmap
+
+**Status (2026-06):** functional end-to-end. All current work lives on branch
+`feature/answer-quality-rescue-tools` (**not yet merged to `master`**). Knowledge base = 24
+topics / 167 chunks. Verified end-to-end on the local `qwen2.5:7b-instruct` (earthquake,
+buried-person, English burn first-aid, off-topic refusal, multi-turn follow-up all pass).
+
+**What was built this round:** the 3 offline rescue tools (Panic Mode, SOS toolkit, Emergency
+go-bag), multi-turn chat + «گفتگوی جدید» reset, language matching (English in → English out),
+the reranker-score refusal guard, provider-swappable LLM (env vars), and 4 new first-aid docs
+(burns/choking/fracture/CPR).
+
+**Known limitations (candidate backlog):**
+- **LLM quality is the #1 lever.** Local Qwen-7B is weak at Persian (occasional awkward/invented
+  phrasing). Fix = swap to a better model: finish `ollama pull aya-expanse:8b` (local) or set
+  `LLM_BASE_URL`/`LLM_API_KEY`/`LLM_MODEL` to a hosted aggregator (Avalai/OpenRouter). One config
+  flip — no code change. **Gated on the user supplying a key or bandwidth.**
+- **No automated eval harness yet** — `tests/qa.jsonl` is proposed but not built. Regression
+  testing is manual.
+- **No bilingual (English) knowledge base** — English questions are answered from Persian chunks
+  via prompt-only language matching. Deferred until chunks are expanded/made more robust.
+- **Chat needs the backend online** — only the 3 rescue tools work offline. On-device/offline
+  chat was explicitly deprioritized (unrealistic on a phone).
+- **Single-file frontend** (`app/static/index.html`, vanilla JS) — fine for now; would need
+  componentizing if the UI grows.
+- **No auth, rate limiting, or deployment config** for a public/hosted launch.
+
+**Deferred (decided not-this-round):** bilingual KB, offline/hybrid chat fallback.

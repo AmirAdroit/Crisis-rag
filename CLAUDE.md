@@ -122,3 +122,30 @@ Read in `app/rag.py` via `os.getenv("LLM_BASE_URL"/"LLM_API_KEY"/"LLM_MODEL")` f
 | `cyber_infrastructure.md` | قطع زیرساخت‌های حیاتی |
 | `search_rescue.md` | جستجو و نجات |
 | `navigation_signaling.md` | ناوبری و سیگنال نجات |
+
+## Academic Context (ITPM Course)
+
+This project is the practical deliverable for the **IT Project Management (ITPM)** course. It is presented as a fully functional, deployable AI system — not a throwaway exercise.
+
+**Team:**
+| Member | Role |
+|---|---|
+| امیرمسعود آشوری | مدیر پروژه و توسعه‌دهنده ارشد |
+| مجیدرضاکریمی | مهندسی هوش مصنوعی و RAG |
+| محمد مجتبی کچویی | توسعه‌دهنده بک‌اند و یکپارچه‌سازی |
+
+**Final submission deadline: Tir 12, 1404 (~July 3, 2026) at 16:00** — submitted via the LMS.
+
+**Final delivery is 7/10 of the total grade, split into 3 parts:**
+
+| Part | Points | Deliverable |
+|---|---|---|
+| Part 1 | 2 pts | 10-minute video: project intro, KPIs, challenges + lessons learned, live product demo |
+| Part 2 | 2 pts | Comprehensive written report (Day 1 → final delivery) |
+| Part 3 | **3 pts** | Direct assessor access to **Jira** + **Notion** with full project history |
+
+**Part 3 requirements (highest points — prioritize):**
+- **Jira** (self-hosted): Agile-compliant board, epics, sprints, all tasks assigned to team members, time tracking from start of term, future backlog defined. Assessors will log in directly.
+- **Notion**: Architecture decision log, meeting notes, sprint retrospectives, AI usage log, technical documentation. Assessors will log in directly.
+
+**Date note:** Jira and Notion were not set up from day one. When backfilling project history into these tools, sprint start/end dates and task creation dates need to reflect when work actually happened during the term — not today's date. For self-hosted Jira, creation dates can be adjusted via admin SQL/API. This is standard practice when migrating an existing project's history into a PM tool.
