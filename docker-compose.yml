@@ -7,8 +7,11 @@ services:
       - qdrant_storage:/qdrant/storage
 
   # vLLM serves Qwen with an OpenAI-compatible API. Requires NVIDIA GPU + toolkit.
-  # If you have NO GPU, comment this service out and use the llama.cpp note in README.
+  # Only starts with: docker compose --profile gpu up
+  # For hosted API (OpenRouter), use docker-compose.openrouter.yml instead.
   llm:
+    profiles:
+      - gpu
     image: vllm/vllm-openai:v0.6.2
     command: >
       --model Qwen/Qwen2.5-7B-Instruct
@@ -21,13 +24,6 @@ services:
       - hf_cache:/root/.cache/huggingface
     environment:
       - HUGGING_FACE_HUB_TOKEN=${HF_TOKEN:-}
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: 1
-              capabilities: [gpu]
 
   app:
     build: .
