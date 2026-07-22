@@ -37,6 +37,8 @@ services:
       - qdrant
     volumes:
       - hf_cache:/code/.hf_cache
+    environment:
+      - QDRANT_URL=http://qdrant:6333
     # config.yaml already points at service names qdrant/llm on the compose network.
 
 volumes:

@@ -35,7 +35,7 @@ class RAGPipeline:
         e = CONFIG["embedding"]
         self.embedder = SentenceTransformer(e["model_name"], device=e["device"])
         self.qprefix = e["query_prefix"]
-        self.qdrant = QdrantClient(url=CONFIG["vector_store"]["url"])
+        self.qdrant = QdrantClient(url=os.getenv("QDRANT_URL", CONFIG["vector_store"]["url"]))
         self.coll = CONFIG["vector_store"]["collection"]
         self.reranker = None
         if CONFIG["reranker"]["enabled"]:

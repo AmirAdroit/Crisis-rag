@@ -90,7 +90,7 @@ def main():
     emb_cfg = CONFIG["embedding"]
     model = SentenceTransformer(emb_cfg["model_name"], device=emb_cfg["device"])
 
-    client = QdrantClient(url=CONFIG["vector_store"]["url"])
+    client = QdrantClient(url=os.getenv("QDRANT_URL", CONFIG["vector_store"]["url"]))
     coll = CONFIG["vector_store"]["collection"]
     dim = model.get_sentence_embedding_dimension()
 
