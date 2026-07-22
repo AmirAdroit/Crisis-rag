@@ -147,7 +147,68 @@ ollama serve                  # exposes http://localhost:11434
 
 ---
 
-## 8. API
+## 8. Hosted LLM (OpenRouter / any OpenAI-compatible API)
+
+No GPU, no local LLM — use a hosted API. The code is already provider-agnostic
+via env vars (`app/rag.py:45-49`). The easiest option is **OpenRouter** with free
+models.
+
+### Free models (July 2026)
+
+| Model ID | Context | Notes |
+|---|---|---|
+| `google/gemma-4-31b-it:free` | 262K | **Recommended** — multilingual, strong Persian |
+| `nvidia/nemotron-3-super-120b-a12b:free` | 1M | Strong reasoning, English-primary |
+| `nvidia/nemotron-3-nano-30b-a3b:free` | 256K | Lighter, faster |
+
+Rate limits: 20 req/min, 50 req/day (bump to 1,000/day with a one-time $10 purchase).
+
+### Quick start
+
+```bash
+# Set env vars
+export LLM_BASE_URL="https://openrouter.ai/api/v1"
+export LLM_API_KEY="sk-or-YOUR_KEY_HERE"
+export LLM_MODEL="google/gemma-4-31b-it:free"
+
+# Run (bare metal)
+uvicorn app.server:app --host 0.0.0.0 --port 8080
+```
+
+### Docker (no GPU)
+
+```bash
+# Edit .env with your key, then:
+docker compose -f docker-compose.yml -f docker-compose.openrouter.yml up -d --build
+docker compose exec app python -m scripts.ingest
+```
+
+The `docker-compose.openrouter.yml` override disables the GPU `llm` service and
+injects the three env vars into the app container.
+
+### Test connection
+
+```bash
+curl -s https://openrouter.ai/api/v1/chat/completions \
+  -H "Authorization: Bearer sk-or-YOUR_KEY_HERE" \
+  -H "Content-Type: application/json" \
+  -d '{"model":"google/gemma-4-31b-it:free","messages":[{"role":"user","content":"test"}]}'
+```
+
+### Server requirements (API-only, no GPU)
+
+| Resource | Minimum | Recommended |
+|---|---|---|
+| CPU | 2 cores | 4+ cores |
+| RAM | 4 GB | 8 GB |
+| Disk | 5 GB | 10 GB |
+| GPU | None | None |
+
+Only Qdrant + embedder (~560 MB) + reranker (~1-2 GB) + FastAPI run locally.
+
+---
+
+## 9. API
 
 `POST /chat`
 ```json
@@ -173,7 +234,7 @@ curl -s -X POST http://localhost:8080/chat \
 
 ---
 
-## 9. Example queries & expected behavior
+## 10. Example queries & expected behavior
 
 | Query (fa) | Behavior |
 |---|---|
@@ -184,7 +245,7 @@ curl -s -X POST http://localhost:8080/chat \
 
 ---
 
-## 10. Project structure
+## 11. Project structure
 
 ```
 crisis-rag/
@@ -195,15 +256,48 @@ crisis-rag/
 │   └── ingest.py         # build the vector index
 ├── data/raw/*.md         # Persian knowledge base (edit me)
 ├── configs/config.yaml   # all knobs in one place
+├── .env                  # API keys (gitignored)
 ├── Dockerfile
-├── docker-compose.yml
+├── docker-compose.yml               # full stack (GPU required)
+├── docker-compose.openrouter.yml    # override: hosted API, no GPU
 └── requirements.txt
 ```
 
 ---
 
-## 11. Maintenance & testing
+## 12. Maintenance & testing
 
 - **Update knowledge**: edit `data/raw/*.md`, re-run `python -m scripts.ingest`. No retraining.
-- **Tune relevance**: raise `domain.min_relevance_for_answer` if it answers off-topic; lower if it over-refuses.
+- **Tune relevance**: the primary out-of-domain guard is `domain.min_rerank_score` (reranker score, default `0.02`). Raise it if it answers off-topic; lower if it over-refuses. `domain.min_relevance_for_answer` (vector score) is only the fallback when the reranker is disabled.
 - **Evaluate**: keep a `tests/qa.jsonl` of question→expected-source pairs; assert the correct `source` appears in `sources` (retrieval accuracy is the thing to measure for RAG).
+
+---
+
+## 13. Current status, known limitations & roadmap
+
+**Status (2026-06):** functional end-to-end. All current work lives on branch
+`feature/answer-quality-rescue-tools` (**not yet merged to `master`**). Knowledge base = 24
+topics / 167 chunks. Verified end-to-end on the local `qwen2.5:7b-instruct` (earthquake,
+buried-person, English burn first-aid, off-topic refusal, multi-turn follow-up all pass).
+
+**What was built this round:** the 3 offline rescue tools (Panic Mode, SOS toolkit, Emergency
+go-bag), multi-turn chat + «گفتگوی جدید» reset, language matching (English in → English out),
+the reranker-score refusal guard, provider-swappable LLM (env vars), and 4 new first-aid docs
+(burns/choking/fracture/CPR).
+
+**Known limitations (candidate backlog):**
+- **LLM quality is the #1 lever.** Local Qwen-7B is weak at Persian (occasional awkward/invented
+  phrasing). Fix = swap to a better model: finish `ollama pull aya-expanse:8b` (local) or set
+  `LLM_BASE_URL`/`LLM_API_KEY`/`LLM_MODEL` to a hosted aggregator (Avalai/OpenRouter). One config
+  flip — no code change. **Gated on the user supplying a key or bandwidth.**
+- **No automated eval harness yet** — `tests/qa.jsonl` is proposed but not built. Regression
+  testing is manual.
+- **No bilingual (English) knowledge base** — English questions are answered from Persian chunks
+  via prompt-only language matching. Deferred until chunks are expanded/made more robust.
+- **Chat needs the backend online** — only the 3 rescue tools work offline. On-device/offline
+  chat was explicitly deprioritized (unrealistic on a phone).
+- **Single-file frontend** (`app/static/index.html`, vanilla JS) — fine for now; would need
+  componentizing if the UI grows.
+- **No auth, rate limiting, or deployment config** for a public/hosted launch.
+
+**Deferred (decided not-this-round):** bilingual KB, offline/hybrid chat fallback.
