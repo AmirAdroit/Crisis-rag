@@ -3,11 +3,6 @@
 # Requires a .env file with LLM_API_KEY set.
 
 services:
-  # Remove the local vLLM service entirely — no GPU needed.
-  llm:
-    profiles:
-      - disabled
-
   app:
     depends_on:
       - qdrant
