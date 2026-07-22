@@ -1,4 +1,5 @@
 """FastAPI server exposing the crisis-survival RAG chatbot."""
+import logging
 from pathlib import Path
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -6,6 +7,8 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
 from app.rag import RAGPipeline
+
+log = logging.getLogger(__name__)
 
 app = FastAPI(title="همیار بحران - Crisis Survival Assistant")
 app.add_middleware(
@@ -46,5 +49,12 @@ def health():
 
 @app.post("/chat", response_model=ChatResponse)
 def chat(req: ChatRequest):
-    answer, sources = pipeline.answer(req.question, req.history)
+    try:
+        answer, sources = pipeline.answer(req.question, req.history)
+    except Exception as e:
+        log.exception("LLM call failed")
+        return ChatResponse(
+            answer="متأسفم، سرویس پاسخ‌دهی در حال حاضر در دسترس نیست. لطفاً لحظاتی دیگر دوباره تلاش کنید.",
+            sources=[],
+        )
     return ChatResponse(answer=answer, sources=sources)

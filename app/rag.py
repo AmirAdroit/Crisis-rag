@@ -1,10 +1,11 @@
 """Core RAG: retrieve -> rerank -> ground -> generate (language-matched, domain-guarded)."""
 import os
 import re
+import time
 import yaml
 from qdrant_client import QdrantClient
 from sentence_transformers import SentenceTransformer, CrossEncoder
-from openai import OpenAI
+from openai import OpenAI, RateLimitError, APIStatusError
 
 CONFIG = yaml.safe_load(open("configs/config.yaml", encoding="utf-8"))
 
@@ -112,18 +113,29 @@ class RAGPipeline:
         messages.append({"role": "user", "content": USER_TEMPLATE.format(
             context=context, question=question)})
 
-        resp = self.llm.chat.completions.create(
-            model=self.model,
-            temperature=CONFIG["llm"]["temperature"],
-            max_tokens=CONFIG["llm"]["max_tokens"],
-            messages=messages,
-        )
+        resp = self._llm_call(messages)
         sources = [
             {"title": p["title"], "section": p["section"],
              "category": p["category"], "source": p["source"]}
             for p, _ in ranked
         ]
         return resp.choices[0].message.content.strip(), sources
+
+    def _llm_call(self, messages, retries=3):
+        for attempt in range(retries):
+            try:
+                return self.llm.chat.completions.create(
+                    model=self.model,
+                    temperature=CONFIG["llm"]["temperature"],
+                    max_tokens=CONFIG["llm"]["max_tokens"],
+                    messages=messages,
+                )
+            except (RateLimitError, APIStatusError) as e:
+                if attempt < retries - 1:
+                    wait = 2 ** attempt * 2
+                    time.sleep(wait)
+                else:
+                    raise
 
     @staticmethod
     def _refuse(question=""):
