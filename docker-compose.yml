@@ -35,7 +35,6 @@ services:
       - "8080:8080"
     depends_on:
       - qdrant
-      - llm
     volumes:
       - hf_cache:/code/.hf_cache
     # config.yaml already points at service names qdrant/llm on the compose network.
