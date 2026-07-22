@@ -1,0 +1,17 @@
+# Override: no local LLM, use OpenRouter API instead.
+# Usage: docker compose -f docker-compose.yml -f docker-compose.openrouter.yml up -d --build
+# Requires a .env file with LLM_API_KEY set.
+
+services:
+  # Remove the local vLLM service entirely — no GPU needed.
+  llm:
+    profiles:
+      - disabled
+
+  app:
+    depends_on:
+      - qdrant
+    environment:
+      - LLM_BASE_URL=https://openrouter.ai/api/v1
+      - LLM_API_KEY=${LLM_API_KEY}
+      - LLM_MODEL=${LLM_MODEL:-google/gemma-4-31b-it:free}
